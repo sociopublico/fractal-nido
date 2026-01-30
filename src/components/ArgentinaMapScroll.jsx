@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { feature } from 'topojson-client';
+import ScrollCard from './ScrollCard';
 
 const WORLD_ATLAS_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 const LOCALIDADES_CSV_URL =
@@ -11,9 +12,9 @@ const ARGENTINA_ID = '032';
 const ZOOM_SCROLL_PX = 500;
 const CARD_SCROLL_PX = 700;
 const SCALE_START = 3;
-const SCALE_END = 1;
+const SCALE_END = 0.90;
 
-const POINT_RADIUS = 3.5;
+const POINT_RADIUS = 5.5;
 const POINT_COLOR = '#18D4B4';
 
 
@@ -204,11 +205,12 @@ export default function ArgentinaMapScroll() {
       className="relative"
       style={{ minHeight: `calc(${ZOOM_SCROLL_PX + CARD_SCROLL_PX}px + 50vh)` }}
     >
-      <div className="sticky top-0 left-0 w-full h-screen flex items-center justify-center bg-navy overflow-hidden">
+      <div className="sticky top-0 left-0 w-full h-screen flex items-center justify-center bg-navy overflow-x">
+
         <svg
           ref={svgRef}
           className="absolute inset-0 w-full h-full"
-          viewBox={`0 0 ${svgW} ${svgH}`}
+          viewBox={`0 -30 ${svgW} ${svgH}`}
           preserveAspectRatio="xMidYMid meet"
         />
         {/* Tooltip al hacer hover sobre un punto */}
@@ -229,28 +231,24 @@ export default function ArgentinaMapScroll() {
             )}
           </div>
         )}
+              <img src="/header.png" alt="Header" className="absolute top-[-270px] left-0 w-full object-cover object-left h-[75]" />
+
         {/* Card que entra desde abajo a la derecha y sale por arriba (paso 2) */}
-        <div
-          className="absolute text-black right-0 w-[450px] pointer-events-none transition-transform duration-200 ease-out"
+        <ScrollCard
+          className="absolute right-0"
           style={{
             top: '50%',
             transform: `translateY(calc(-50% + ${cardY}vh))`,
           }}
         >
-            <img src="/card.png" className="object-cover w-full h-full" />
-            <div className="absolute top-0 left-0 w-full h-full p-10">
-              <div className="bg-white w-full h-full p-10">
-                <h3 className="text-4xl mb-2 text-black font-medium leading-tighter">
-                  El entorno puede{' '}
-                  <span style={{ color: '#00A1DE' }}>potenciar</span> o limitar esas oportunidades desde el primer día.
-                </h3>
-              <p className="text-xl font-medium mt-12" style={{ color: '#00A1DE' }}>
-              Algunos niños y niñas nacen en entornos con menos oportunidades que otros.
-            </p>
-
-              </div>
-            </div>
-        </div>
+          <h3 className="text-4xl mb-2 text-black font-medium leading-tightest">
+            El entorno puede{' '}
+            <span style={{ color: '#00A1DE' }}>potenciar</span> o limitar esas oportunidades desde el primer día.
+          </h3>
+          <p className="text-xl font-medium mt-12" style={{ color: '#00A1DE' }}>
+            Algunos niños y niñas nacen en entornos con menos oportunidades que otros.
+          </p>
+        </ScrollCard>
       </div>
     </section>
   );

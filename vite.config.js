@@ -5,8 +5,15 @@ import path from 'path';
 /**
  * Carpeta de salida del build (relativa al proyecto).
  * Para WordPress: apuntar al tema, ej. '../mi-tema/assets/mi-app/'
+ * Para GitHub Pages: el workflow usa VITE_OUTPUT_DIR=dist
  */
 const OUTPUT_DIR = process.env.VITE_OUTPUT_DIR || '../js/mi-app';
+
+/**
+ * Base público (para assets y rutas).
+ * En GitHub Pages (proyecto): /<repo-name>/ ; local o WordPress: ./
+ */
+const BASE = process.env.VITE_BASE ?? './';
 
 export default defineConfig({
   plugins: [react()],
@@ -29,5 +36,5 @@ export default defineConfig({
     sourcemap: false,
     target: 'es2020',
   },
-  base: './',
+  base: BASE,
 });
