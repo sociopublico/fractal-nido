@@ -81,18 +81,18 @@ export default function HorizontalScroll() {
           <div className="w-screen min-h-screen flex-shrink-0 flex items-center justify-center">
             <div className="relative w-full max-w-4xl mx-auto aspect-video max-h-[70vh] flex items-center justify-center">
               <img
-                src="/scrolly1.png"
+                src="./scrolly1.png"
                 alt=""
                 className="absolute inset-0 w-full h-full object-contain object-center"
               />
               <img
-                src="/scrolly2.png"
+                src="./scrolly2.png"
                 alt=""
                 className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none transition-opacity duration-75"
                 style={{ opacity: opacity2 }}
               />
               <img
-                src="/scrolly3.png"
+                src="./scrolly3.png"
                 alt=""
                 className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none transition-opacity duration-75"
                 style={{ opacity: opacity3 }}
@@ -114,7 +114,7 @@ export default function HorizontalScroll() {
           {/* Sección 3: scrolly4 */}
           <div className="w-screen min-h-screen flex-shrink-0 flex items-center justify-center">
             <img
-              src="/scrolly4.png"
+              src="./scrolly4.png"
               alt=""
               className="max-w-full max-h-[85vh] w-auto h-auto object-contain"
             />
