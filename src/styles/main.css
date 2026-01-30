@@ -1,0 +1,12 @@
+/* Satoshi: única fuente del proyecto (Fontshare) */
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Alcance de estilos para no afectar el resto de WordPress */
+.mi-app {
+  font-family: 'Satoshi', sans-serif;
+  @apply text-navy antialiased;
+}
