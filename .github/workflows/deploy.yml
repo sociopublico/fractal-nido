@@ -16,6 +16,8 @@ concurrency:
 
 jobs:
   build:
+    environment:
+      name: github-pages
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,6 +37,7 @@ jobs:
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
           VITE_OUTPUT_DIR: dist
+          VITE_MAPBOX_TOKEN: ${{ vars.VITE_MAPBOX_TOKEN || secrets.VITE_MAPBOX_TOKEN }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

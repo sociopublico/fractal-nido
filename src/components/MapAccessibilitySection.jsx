@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { withBase } from '../utils/withBase';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 const SALUD_FILTER = ['==', ['get', 'tipo'], 'salud'];
@@ -73,7 +74,7 @@ export default function MapAccessibilitySection() {
 
       let localidadesGeoJson = null;
       try {
-        const raw = await fetch('/shapes/tiempos.geojson').then((r) => r.text());
+        const raw = await fetch(withBase('shapes/tiempos.geojson')).then((r) => r.text());
         const sanitized = raw.replace(/:\s*NaN/g, ': null');
         localidadesGeoJson = JSON.parse(sanitized);
       } catch {
@@ -87,7 +88,7 @@ export default function MapAccessibilitySection() {
 
       map.addSource('argentina-provincias', {
         type: 'geojson',
-        data: '/shapes/provincias.json',
+        data: withBase('shapes/provincias.json'),
       });
 
       map.addLayer({
