@@ -1,13 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import { feature } from 'topojson-client';
 import ScrollCard from './ScrollCard';
-
-const WORLD_ATLAS_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
-const LOCALIDADES_CSV_URL =
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vS4qmx1XopDwvHxBj574EUmjT9XlM4OdvxP_DameDIq8qadGzBx1AlWb7BQirXwyvf37FacyS5OJZIw/pub?gid=1970511762&single=true&output=csv';
-
-const ARGENTINA_ID = '032';
+import { useDataStore } from '../store/useDataStore';
 
 const ZOOM_SCROLL_PX = 500;
 const CARD_SCROLL_PX = 700;
@@ -16,15 +10,15 @@ const SCALE_END = 0.90;
 
 const POINT_RADIUS = 5.5;
 const POINT_COLOR = '#18D4B4';
-
+const OPACITY_MIN = 0.2;
+const OPACITY_MAX = 1;
 
 export default function ArgentinaMapScroll() {
   const sectionRef = useRef(null);
   const svgRef = useRef(null);
   const [scale, setScale] = useState(SCALE_START);
   const [step2Progress, setStep2Progress] = useState(0);
-  const [geoData, setGeoData] = useState(null);
-  const [localidades, setLocalidades] = useState([]);
+  const [mapStepEntered, setMapStepEntered] = useState(false);
   const [tooltip, setTooltip] = useState(null);
   const [projectionReady, setProjectionReady] = useState(false);
   const [redrawKey, setRedrawKey] = useState(0);
@@ -33,41 +27,32 @@ export default function ArgentinaMapScroll() {
   const pathGeneratorRef = useRef(null);
   const baseScaleRef = useRef(1);
   const setTooltipRef = useRef(setTooltip);
+  const hasAnimatedPointsRef = useRef(false);
   setTooltipRef.current = setTooltip;
 
-  // Cargar TopoJSON y extraer Argentina
+  // Puntos solo cuando la sección del mapa entra en vista
   useEffect(() => {
-    let cancelled = false;
-    d3.json(WORLD_ATLAS_URL).then((topology) => {
-      if (cancelled || !topology) return;
-      const countries = feature(topology, topology.objects.countries);
-      const argentina = countries.features.find(
-        (d) => String(d.id) === ARGENTINA_ID || d.id === 32
-      );
-      if (argentina) setGeoData(argentina);
-    }).catch(console.error);
-    return () => { cancelled = true; };
+    const section = sectionRef.current;
+    if (!section) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) setMapStepEntered(true);
+      },
+      { threshold: 0.15, rootMargin: '0px' }
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
   }, []);
 
-  // Cargar localidades desde CSV (provincia, localidad, LON, LAT, población)
+  const geoData = useDataStore((s) => s.geoData);
+  const localidades = useDataStore((s) => s.localidades);
+  const fetchGeo = useDataStore((s) => s.fetchGeo);
+  const fetchLocalidades = useDataStore((s) => s.fetchLocalidades);
+
   useEffect(() => {
-    let cancelled = false;
-    d3.csv(LOCALIDADES_CSV_URL).then((rows) => {
-      if (cancelled || !rows) return;
-      const data = rows
-        .filter((d) => d.LON != null && d.LAT != null && d.localidad != null)
-        .map((d) => ({
-          provincia: d.provincia ?? '',
-          localidad: d.localidad ?? '',
-          LON: +d.LON,
-          LAT: +d.LAT,
-          poblacion: d.poblacion != null ? +d.poblacion : null,
-        }))
-        .filter((d) => !Number.isNaN(d.LON) && !Number.isNaN(d.LAT));
-      setLocalidades(data);
-    }).catch(console.error);
-    return () => { cancelled = true; };
-  }, []);
+    fetchGeo();
+    fetchLocalidades();
+  }, [fetchGeo, fetchLocalidades]);
 
   // Inicializar proyección cuando hay datos y SVG con dimensiones
   useEffect(() => {
@@ -160,21 +145,40 @@ export default function ArgentinaMapScroll() {
       .attr('stroke', '#00A1DE33')
       .attr('stroke-width', 1.5);
 
-    const points = localidades
-      .map((d) => {
-        const pt = proj([d.LON, d.LAT]);
-        return pt ? { ...d, x: pt[0], y: pt[1] } : null;
-      })
-      .filter(Boolean);
+    const points = mapStepEntered
+      ? localidades
+          .map((d) => {
+            const pt = proj([d.LON, d.LAT]);
+            return pt ? { ...d, x: pt[0], y: pt[1] } : null;
+          })
+          .filter(Boolean)
+      : [];
 
+    const tasasValidas = points
+      .map((d) => d.tasaDePrivaciones)
+      .filter((v) => v != null && !Number.isNaN(v));
+    const opacityScale =
+      tasasValidas.length > 0
+        ? d3.scaleLinear().domain(d3.extent(tasasValidas)).range([OPACITY_MIN, OPACITY_MAX])
+        : null;
+
+    const getOpacity = (d) => {
+      if (opacityScale != null && d.tasaDePrivaciones != null) {
+        return opacityScale(d.tasaDePrivaciones);
+      }
+      return (OPACITY_MIN + OPACITY_MAX) / 2;
+    };
+
+    const shouldGrow = !hasAnimatedPointsRef.current && points.length > 0;
     const circles = g
       .selectAll('circle')
       .data(points)
       .join('circle')
       .attr('cx', (d) => d.x)
       .attr('cy', (d) => d.y)
-      .attr('r', POINT_RADIUS)
+      .attr('r', shouldGrow ? 0 : POINT_RADIUS)
       .attr('fill', POINT_COLOR)
+      .attr('opacity', getOpacity)
       .attr('filter', 'url(#glow-cyan)')
       .style('cursor', 'pointer')
       .on('mouseover', function (event, d) {
@@ -184,6 +188,7 @@ export default function ArgentinaMapScroll() {
           localidad: d.localidad,
           provincia: d.provincia,
           poblacion: d.poblacion,
+          tasaDePrivaciones: d.tasaDePrivaciones,
         });
       })
       .on('mouseout', () => setTooltipRef.current(null))
@@ -191,10 +196,22 @@ export default function ArgentinaMapScroll() {
         setTooltipRef.current((t) => (t ? { ...t, x: event.clientX, y: event.clientY } : null));
       });
 
+    if (shouldGrow) {
+      hasAnimatedPointsRef.current = true;
+      circles
+        .transition()
+        .duration(450)
+        .ease(d3.easeCubicOut)
+        .attr('r', POINT_RADIUS);
+    }
+
     circles
       .append('title')
-      .text((d) => `${d.localidad}, ${d.provincia}${d.poblacion ? ` · ${d.poblacion.toLocaleString('es-AR')} hab.` : ''}`);
-  }, [geoData, scale, projectionReady, redrawKey, svgSize, localidades]);
+      .text(
+        (d) =>
+          `${d.localidad}, ${d.provincia}${d.poblacion ? ` · ${d.poblacion.toLocaleString('es-AR')} hab.` : ''}${d.tasaDePrivaciones != null ? ` · Tasa de privaciones: ${d.tasaDePrivaciones.toFixed(1)}%` : ''}`
+      );
+  }, [geoData, scale, projectionReady, redrawKey, svgSize, localidades, mapStepEntered]);
 
   const { w: svgW, h: svgH } = svgSize;
   const cardY = step2Progress <= 0 ? 100 : (1 - 2 * step2Progress) * 100;
@@ -227,6 +244,11 @@ export default function ArgentinaMapScroll() {
             {tooltip.poblacion != null && (
               <div className="mt-1 text-white/70">
                 {tooltip.poblacion.toLocaleString('es-AR')} hab.
+              </div>
+            )}
+            {tooltip.tasaDePrivaciones != null && (
+              <div className="mt-1 text-white/70">
+                Tasa de privaciones: {Number(tooltip.tasaDePrivaciones).toFixed(1)}%
               </div>
             )}
           </div>

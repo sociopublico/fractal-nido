@@ -17,8 +17,8 @@ export default {
         coral: '#DE5A3F',
         purple: '#7D00B2',
         gold: '#E3BF2D',
-        redmap: '#CA2626',
-        greenmap: '#87C066',
+        mayorIngreso: '#CA2626',
+        menorIngreso: '#DA6767',
       },
       /* Uso: text-navy, bg-blue, bg-teal/20, border-gray, etc. Satoshi es la única fuente. */
     },

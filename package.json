@@ -9,10 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@lottiefiles/dotlottie-react": "^0.17.15",
     "d3": "^7.9.0",
+    "mapbox-gl": "^3.20.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "topojson-client": "^3.1.0"
+    "topojson-client": "^3.1.0",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
