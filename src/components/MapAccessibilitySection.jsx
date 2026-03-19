@@ -256,7 +256,7 @@ export default function MapAccessibilitySection() {
   return (
     <>
       <div className="relative w-full h-[70vh] min-h-[420px] mt-12">
-        <div className="absolute top-4 left-1/2 z-10 -translate-x-1/2 bg-white/95 shadow-md rounded-full p-1 flex gap-1">
+        <div className="absolute top-4 left-1/2 z-10 -translate-x-1/2 bg-[#0030870D] shadow-md rounded-full p-1 flex gap-1">
           {metricOptions.map((option) => {
             const isActive = selectedMetric === option.id;
             return (
@@ -280,7 +280,7 @@ export default function MapAccessibilitySection() {
         )}
       </div>
 
-      <div className="w-full bg-white py-4 px-6 md:px-10">
+      <div className="w-full bg-[#0030870D] py-4 px-6 md:px-10">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center gap-6 text-sm text-black justify-center">
           <span className="inline-flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-[#E63946]" />

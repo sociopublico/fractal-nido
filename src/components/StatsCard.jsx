@@ -1,9 +1,10 @@
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { withBase } from '../utils/withBase';
 
 function WalkingPerson({ size }) {
   return (
     <DotLottieReact
-      src="./walk.lottie"
+      src={withBase('walk.lottie')}
       loop
       autoplay
       style={{ width: size, height: size, marginRight: -8.75 }}
@@ -22,7 +23,7 @@ export default function StatsCard({ children, textoMenorIngreso, textoMayorIngre
       </div>
       <div className="flex w-full">
         <div className="w-1/2 bg-menorIngreso p-6 text-white text-3xl font-bold">
-        <img src="./arrow.png" alt="Green Icon" className="w-6 h-6 mb-4 rotate-180" />
+        <img src={withBase('arrow.png')} alt="Green Icon" className="w-6 h-6 mb-4 rotate-180" />
           <p className="text-3xl font-bold">{numMenorIngreso ?? '—'} de cada {total ?? '—'}</p>
           <p className="text-sm  font-regular uppercase">de menor nivel socioeconómico no accede a espacios verdes</p>
           <div className="flex items-bottom justify-left flex-wrap gap-2 mt-4" >
@@ -36,7 +37,7 @@ export default function StatsCard({ children, textoMenorIngreso, textoMayorIngre
           </div>
         </div>
         <div className="w-1/2 bg-mayorIngreso p-6 text-white text-3xl font-bold">
-        <img src="./arrow.png" alt="Green Icon" className="w-6 h-6 mb-4" />
+        <img src={withBase('arrow.png')} alt="Green Icon" className="w-6 h-6 mb-4" />
           <p className="text-3xl font-bold">{numMayorIngreso ?? '—'} de cada {total ?? '—'}</p>
           <p className="text-sm  font-regular uppercase">de mayor nivel socioeconómico no accede a espacios verdes</p>
           <div className="flex items-bottom justify-left flex-wrap gap-2 mt-4" >

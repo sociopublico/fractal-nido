@@ -1,9 +1,10 @@
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { withBase } from '../utils/withBase';
 
 function Clock({ size }) {
   return (
     <DotLottieReact
-      src="./clock.lottie"
+      src={withBase('clock.lottie')}
       loop
       autoplay
       style={{ width: size, height: size, marginRight: -3 }}
@@ -21,7 +22,7 @@ export default function SingleStatsCard({ children, color = 'menorIngreso', text
         {children}
       </div>
       <div className='bg-mayorIngreso p-6 text-white'>
-        <img src="./arrow.png" alt="" className="w-6 h-6 mb-4 rotate-180" />
+        <img src={withBase('arrow.png')} alt="" className="w-6 h-6 mb-4 rotate-180" />
 
         <p className="text-3xl font-bold">+ de 2hs </p>
 

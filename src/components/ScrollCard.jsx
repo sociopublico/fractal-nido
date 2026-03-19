@@ -1,3 +1,5 @@
+import { withBase } from '../utils/withBase';
+
 export default function ScrollCard({ title, children, className = '', style = {} }) {
   return (
     <div
@@ -9,7 +11,7 @@ export default function ScrollCard({ title, children, className = '', style = {}
       }}
     >
       {/* Imagen de fondo: se estira con la altura del contenido */}
-      <img src="./card.png" alt="" className="absolute inset-0 w-full h-full object-cover object-center z-0 rounded-lg" />
+      <img src={withBase('card.png')} alt="" className="absolute inset-0 w-full h-full object-cover object-center z-0 rounded-lg" />
       {/* Contenido en flujo para que la card crezca en altura con el texto */}
       <div className="relative z-10 p-10 max-h-[85vh] overflow-y-auto">
         <div className="bg-white p-8 shadow-lg rounded-sm">

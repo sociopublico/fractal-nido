@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import ScrollCard from './ScrollCard';
 import { useDataStore } from '../store/useDataStore';
+import { withBase } from '../utils/withBase';
 
 const ZOOM_SCROLL_PX = 500;
 const CARD_SCROLL_PX = 700;
@@ -253,7 +254,7 @@ export default function ArgentinaMapScroll() {
             )}
           </div>
         )}
-              <img src="./header.png" alt="Header" className="absolute top-[-270px] left-0 w-full object-cover object-left h-[75]" />
+              <img src={withBase('header.png')} alt="Header" className="absolute top-[-270px] left-0 w-full object-cover object-left h-[75]" />
 
         {/* Card que entra desde abajo a la derecha y sale por arriba (paso 2) */}
         <ScrollCard

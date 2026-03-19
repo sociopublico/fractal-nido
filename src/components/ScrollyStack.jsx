@@ -1,3 +1,5 @@
+import { withBase } from '../utils/withBase';
+
 /**
  * ScrollyStack: varias imágenes superpuestas (carpeta con 01..18).
  * La 01 queda arriba (delante), la 18 atrás.
@@ -27,7 +29,7 @@ export default function ScrollyStack({
     layers.push(n);
   }
 
-  const baseUrl = folder.startsWith('/') ? folder : `/${folder}`;
+  const folderPath = String(folder).replace(/^\/+/, '');
 
   return (
     <div
@@ -37,7 +39,7 @@ export default function ScrollyStack({
       {layers.map((num) => (
         <img
           key={num}
-          src={`${baseUrl}/${String(num).padStart(2, '0')}.png`}
+          src={withBase(`${folderPath}/${String(num).padStart(2, '0')}.png`)}
           alt=""
           className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none transition-opacity duration-200 ease-out"
           style={{ opacity: visibleSet.has(num) ? 1 : 0, zIndex: totalImages - num + 1 }}

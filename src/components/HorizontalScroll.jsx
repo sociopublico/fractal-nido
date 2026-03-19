@@ -3,6 +3,7 @@ import ScrollCard from './ScrollCard';
 import StatsCard from './StatsCard';
 import SingleStatsCard from './SingleStatsCard';
 import ScrollyStack from './ScrollyStack';
+import { withBase } from '../utils/withBase';
 
 // Rango de scroll (en px) para cada fase
 const SCROLL_STEP_1_PX = 400;     // paso 0 → paso 1 del scrolly
@@ -141,7 +142,7 @@ export default function HorizontalScroll() {
             </StatsCard>
             </div>
             <img
-              src="./scrolly4.png"
+              src={withBase('scrolly4.png')}
               alt=""
               className="w-[34vw] -ml-[400px] max-w-[40vw] max-h-[80vh] h-auto object-contain flex-none"
             />
@@ -150,7 +151,7 @@ export default function HorizontalScroll() {
           {/* Sección 4: scrolly4 + card nueva */}
           <div className="w-screen min-h-screen flex-shrink-0 flex items-center justify-center px-8 gap-8">
             <img
-              src="./scrolly1/scrolly4.png"
+              src={withBase('scrolly1/scrolly4.png')}
               alt=""
               className="max-h-[80vh] w-auto h-auto object-contain flex-shrink-0"
             />
@@ -199,7 +200,7 @@ export default function HorizontalScroll() {
           {/* Sección 6: imagen placeholder + single stats card */}
           <div className="w-screen min-h-screen flex-shrink-0 flex items-center justify-center px-6 gap-6">
             <img
-              src="./scrolly1/scrolly4.png"
+              src={withBase('scrolly1/scrolly4.png')}
               alt=""
               className="w-[34vw] max-w-[34vw] max-h-[80vh] h-auto object-contain flex-none"
             />
@@ -222,7 +223,7 @@ export default function HorizontalScroll() {
           {/* Sección 7: ScrollCard final */}
           <div className="w-screen min-h-screen flex-shrink-0 flex items-center justify-center px-8">
           <img
-              src="./scrolly1/scrolly4.png"
+              src={withBase('scrolly1/scrolly4.png')}
               alt=""
               className="max-w-screen w-[40vw] max-h-[80vh] w-auto h-auto object-contain flex-shrink-0"
             />

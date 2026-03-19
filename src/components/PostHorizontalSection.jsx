@@ -1,11 +1,12 @@
-import ScrollCard from './ScrollCard';
+
 import MapAccessibilitySection from './MapAccessibilitySection';
+import { withBase } from '../utils/withBase';
 
 export default function PostHorizontalSection() {
   return (
-    <section className="relative bg-white pt-28 pb-24">
+    <section className="relative bg-white pt-28">
       <img
-        src="/header.png"
+        src={withBase('header.png')}
         alt="Divisor de sección"
         className="absolute top-0 left-0 w-full object-cover object-left h-[180px]"
       />
