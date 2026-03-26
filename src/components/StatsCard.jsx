@@ -15,7 +15,7 @@ function WalkingPerson({ size }) {
 export default function StatsCard({ children, textoMenorIngreso, textoMayorIngreso, numMenorIngreso, numMayorIngreso, total,className = '', style = {} }) {
   return (
     <div
-      className={`bg-white shadow-xl overflow-hidden text-black min-w-[32rem] ${className}`}
+      className={`bg-white shadow-xl overflow-hidden text-black  min-w-[32rem] ${className}`}
       style={style}
     >
       <div className="p-8">

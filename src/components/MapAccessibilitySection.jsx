@@ -9,13 +9,13 @@ const EXTRUSION_COLOR_BY_TIPO = [
   'match',
   ['get', 'tipo'],
   'salud',
-  '#E63946',
+  '#CA2626',
   'jardin',
-  '#457B9D',
+  '#E3BF2D',
   'esp_verde',
-  '#2A9D8F',
+  '#00A1DE',
   'esp_verdes',
-  '#2A9D8F',
+  '#00A1DE',
   '#cccccc',
 ];
 const EXTRUSION_HEIGHT_FACTOR = 400;
@@ -31,6 +31,7 @@ export default function MapAccessibilitySection() {
   const mapRef = useRef(null);
   const cameraLogRafRef = useRef(null);
   const extrusionAnimRafRef = useRef(null);
+  const popupRef = useRef(null);
   const [mapReady, setMapReady] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState('tiempo_medio_01');
   const currentMetricRef = useRef(selectedMetric);
@@ -96,8 +97,8 @@ export default function MapAccessibilitySection() {
         type: 'fill',
         source: 'argentina-provincias',
         paint: {
-          'fill-color': '#3b7db0',
-          'fill-opacity': 0.5,
+          'fill-color': '#003087',
+          'fill-opacity': 0.2,
         },
       }, firstSymbolLayer);
 
@@ -194,6 +195,90 @@ export default function MapAccessibilitySection() {
       map.on('move', logCamera);
       map.on('zoom', logCamera);
 
+      // Water color
+      map.getStyle().layers?.forEach((layer) => {
+        const sl = layer['source-layer'];
+        if (sl === 'water' && layer.type === 'fill') {
+          map.setPaintProperty(layer.id, 'fill-color', '#E7EAF2');
+        }
+        if (sl === 'waterway' && layer.type === 'line') {
+          map.setPaintProperty(layer.id, 'line-color', '#E7EAF2');
+        }
+      });
+
+      // Inyectar estilos del popup una sola vez
+      if (!document.getElementById('custom-map-popup-style')) {
+        const style = document.createElement('style');
+        style.id = 'custom-map-popup-style';
+        style.textContent = `
+          .custom-map-popup .mapboxgl-popup-content {
+            padding: 0;
+            border: 1px solid black;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-family: "Satoshi", sans-serif;
+            width: 350px ;
+          }
+          .custom-map-popup .mapboxgl-popup-tip {
+            border-top-color: black !important;
+          }
+          .custom-map-popup {
+            width: 350px ;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Tooltip
+      const tipoLabels = {
+        salud: 'Centro de salud',
+        jardin: 'Jardín de infantes',
+        esp_verde: 'Espacios verdes',
+        esp_verdes: 'Espacios verdes',
+      };
+      const formatMin = (v) => (v != null ? `${Math.round(v)} min` : '—');
+
+      const popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        maxWidth: '360px',
+        className: 'custom-map-popup',
+        anchor: 'bottom',
+      });
+      popupRef.current = popup;
+
+      map.on('mouseenter', 'localidades-10km-extrusion', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+
+      map.on('mousemove', 'localidades-10km-extrusion', (e) => {
+        const feature = e.features?.[0];
+        if (!feature) return;
+        const props = feature.properties;
+        const tipoLabel = tipoLabels[props.tipo] || props.tipo;
+        const metricLabel = currentMetricRef.current === 'tiempo_medio_01' ? 'Menores ingresos' : 'Mayores ingresos';
+        popup
+          .setLngLat(e.lngLat)
+          .setHTML(
+            `<div style="padding:8px 12px;font-size:12px;color:black;">
+              <div style="letter-spacing: 1.4px; text-transform:uppercase;font-size:11px;margin-bottom:-2px">${metricLabel}</div>
+              <div style="font-weight:700;font-size:13px;margin-bottom:6px">${props.localidad || '—'}</div>
+              <div style="border-top:1px solid rgba(134,137,139,0.3);padding-top:6px">
+                <strong>${formatMin(props[currentMetricRef.current])}</strong> 
+              </div>
+              <div style="text-transform: uppercase; font-size: 12px; margin-top: -5px;">
+                hasta el ${tipoLabel} más cercano
+              </div>
+            </div>`
+          )
+          .addTo(map);
+      });
+
+      map.on('mouseleave', 'localidades-10km-extrusion', () => {
+        map.getCanvas().style.cursor = '';
+        popup.remove();
+      });
+
       setMapReady(true);
     });
 
@@ -204,6 +289,7 @@ export default function MapAccessibilitySection() {
       if (extrusionAnimRafRef.current != null) {
         window.cancelAnimationFrame(extrusionAnimRafRef.current);
       }
+      popupRef.current?.remove();
       map.remove();
       mapRef.current = null;
     };
@@ -257,7 +343,7 @@ export default function MapAccessibilitySection() {
   return (
     <>
       <div className="relative w-full h-[70vh] min-h-[420px] mt-12">
-        <div className="absolute top-4 left-1/2 z-10 -translate-x-1/2 bg-[#0030870D] shadow-md rounded-full p-1 flex gap-1">
+        <div className="absolute top-4 left-1/2 z-10 -translate-x-1/2 bg-white shadow-md rounded-full p-1 flex gap-1">
           {metricOptions.map((option) => {
             const isActive = selectedMetric === option.id;
             return (
@@ -265,7 +351,7 @@ export default function MapAccessibilitySection() {
                 key={option.id}
                 type="button"
                 onClick={() => setSelectedMetric(option.id)}
-                className={`px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-navy text-white' : 'text-navy hover:bg-navy/10'}`}
+                className={`px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-navy text-white' : 'bg-white text-navy hover:bg-navy/10'}`}
               >
                 {option.label}
               </button>
@@ -284,15 +370,15 @@ export default function MapAccessibilitySection() {
       <div className="w-full bg-[#0030870D] py-4 px-6 md:px-10">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center gap-6 text-sm text-black justify-center">
           <span className="inline-flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#E63946]" />
+            <span className="w-3 h-3 rounded-full bg-[#CA2626]" />
             Servicio de salud
           </span>
           <span className="inline-flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#457B9D]" />
+            <span className="w-3 h-3 rounded-full bg-[#E3BF2D]" />
             Jardín de infantes
           </span>
           <span className="inline-flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#2A9D8F]" />
+            <span className="w-3 h-3 rounded-full bg-[#00A1DE]" />
             Espacios verdes
           </span>
         </div>

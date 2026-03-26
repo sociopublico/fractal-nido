@@ -8,7 +8,7 @@ export default function PostHorizontalSection() {
       <img
         src={withBase('header.png')}
         alt="Divisor de sección"
-        className="absolute top-0 left-0 w-full object-cover object-left h-[180px]"
+        className="absolute -top-2 left-0 w-full object-cover object-left h-[400px]"
       />
 
       <div className="max-w-xl mx-auto px-6 md:px-10 space-y-12">

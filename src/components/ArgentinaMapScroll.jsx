@@ -6,19 +6,27 @@ import { withBase } from '../utils/withBase';
 
 const ZOOM_SCROLL_PX = 500;
 const CARD_SCROLL_PX = 700;
+const TEXT_SCROLL_PX = 600;
 const SCALE_START = 3;
 const SCALE_END = 0.90;
 
-const POINT_RADIUS = 5.5;
+const POINT_RADIUS = 4.5;
 const POINT_COLOR = '#18D4B4';
-const OPACITY_MIN = 0.2;
-const OPACITY_MAX = 1;
+const POINT_OPACITY = 0.85;
+const PRIVACION_OPACITY = 0.3;
+const PRIVACION_RADIUS_MIN = POINT_RADIUS * 2;
+const PRIVACION_RADIUS_MAX = POINT_RADIUS * 6;
+
+// Duraciones y delays de pulso por índice (deterministas, no random)
+const getPulseDuration = (i) => 2.2 + (i * 0.41) % 1.8; // 2.2–4.0s
+const getPulseDelay = (i) => (i * 0.67) % 2.2;          // 0–2.2s
 
 export default function ArgentinaMapScroll() {
   const sectionRef = useRef(null);
   const svgRef = useRef(null);
   const [scale, setScale] = useState(SCALE_START);
   const [step2Progress, setStep2Progress] = useState(0);
+  const [step3Progress, setStep3Progress] = useState(0);
   const [mapStepEntered, setMapStepEntered] = useState(false);
   const [tooltip, setTooltip] = useState(null);
   const [projectionReady, setProjectionReady] = useState(false);
@@ -95,10 +103,13 @@ export default function ArgentinaMapScroll() {
         const t = progress / ZOOM_SCROLL_PX;
         setScale(SCALE_START - t * (SCALE_START - SCALE_END));
         setStep2Progress(0);
+        setStep3Progress(0);
       } else {
         setScale(SCALE_END);
         const step2 = Math.min(1, (progress - ZOOM_SCROLL_PX) / CARD_SCROLL_PX);
         setStep2Progress(step2);
+        const step3 = Math.min(1, (progress - ZOOM_SCROLL_PX - CARD_SCROLL_PX) / TEXT_SCROLL_PX);
+        setStep3Progress(Math.max(0, step3));
       }
     };
 
@@ -107,7 +118,7 @@ export default function ArgentinaMapScroll() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Redibujar mapa: path + puntos (localidades) con escala base fija, zoom con <g> centrado
+  // Redibujar mapa: path + puntos. NO depende de `scale` para que las animaciones CSS persistan.
   useEffect(() => {
     if (!geoData || !svgRef.current || !pathGeneratorRef.current || !projectionRef.current) return;
 
@@ -122,6 +133,21 @@ export default function ArgentinaMapScroll() {
     d3.select(svgRef.current).selectAll('*').remove();
 
     const defs = d3.select(svgRef.current).append('defs');
+
+    // Keyframe de pulso — cada círculo tendrá distinta duración y delay vía style inline
+    defs.append('style').text(`
+      @keyframes map-pulse {
+        0%, 100% { opacity: 0.35; }
+        50%       { opacity: 0.9; }
+      }
+
+
+      @keyframes map-lower-pulse {
+        0%, 100% { opacity: 0.15; }
+        50%       { opacity: 0.30; }
+      }
+    `);
+
     const filter = defs
       .append('filter')
       .attr('id', 'glow-cyan')
@@ -138,7 +164,11 @@ export default function ArgentinaMapScroll() {
     feMerge.append('feMergeNode').attr('in', 'glow');
     feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
 
-    const g = d3.select(svgRef.current).append('g').attr('transform', `translate(${cx},${cy}) scale(${scale}) translate(${-cx},${-cy})`);
+    const g = d3
+      .select(svgRef.current)
+      .append('g')
+      .attr('id', 'map-g')
+      .attr('transform', `translate(${cx},${cy}) scale(${scale}) translate(${-cx},${-cy})`);
 
     g.append('path')
       .attr('d', path)
@@ -156,32 +186,52 @@ export default function ArgentinaMapScroll() {
       : [];
 
     const tasasValidas = points
-      .map((d) => d.tasaDePrivaciones)
+      .map((d) => 1 - d.tasaDePrivaciones)
       .filter((v) => v != null && !Number.isNaN(v));
-    const opacityScale =
+
+    const privacionRadiusScale =
       tasasValidas.length > 0
-        ? d3.scaleLinear().domain(d3.extent(tasasValidas)).range([OPACITY_MIN, OPACITY_MAX])
+        ? d3.scaleLinear().domain(d3.extent(tasasValidas)).range([PRIVACION_RADIUS_MIN, PRIVACION_RADIUS_MAX])
         : null;
 
-    const getOpacity = (d) => {
-      if (opacityScale != null && d.tasaDePrivaciones != null) {
-        return opacityScale(d.tasaDePrivaciones);
-      }
-      return (OPACITY_MIN + OPACITY_MAX) / 2;
-    };
+    // Círculos concéntricos de privaciones (debajo de los puntos)
+    // Se preserva el índice original para que el pulso sea sincrónico con el círculo ciudad
+    if (privacionRadiusScale) {
+      const pointsConPrivacion = points
+        .map((d, i) => ({ ...d, _i: i }))
+        .filter((d) => 1 - d.tasaDePrivaciones != null);
+
+      g.selectAll('.privacion-circle')
+        .data(pointsConPrivacion)
+        .join('circle')
+        .attr('class', 'privacion-circle')
+        .attr('cx', (d) => d.x)
+        .attr('cy', (d) => d.y)
+        .attr('r', (d) => privacionRadiusScale(1 - d.tasaDePrivaciones))
+        .attr('fill', "#09A9E733")
+        .attr('opacity', PRIVACION_OPACITY)
+        .attr('pointer-events', 'none')
+        .style('animation', (d) =>
+          `map-pulse ${getPulseDuration(d._i).toFixed(2)}s ${getPulseDelay(d._i).toFixed(2)}s ease-in-out infinite`
+        );
+    }
 
     const shouldGrow = !hasAnimatedPointsRef.current && points.length > 0;
     const circles = g
-      .selectAll('circle')
+      .selectAll('.city-circle')
       .data(points)
       .join('circle')
+      .attr('class', 'city-circle')
       .attr('cx', (d) => d.x)
       .attr('cy', (d) => d.y)
       .attr('r', shouldGrow ? 0 : POINT_RADIUS)
       .attr('fill', POINT_COLOR)
-      .attr('opacity', getOpacity)
       .attr('filter', 'url(#glow-cyan)')
       .style('cursor', 'pointer')
+      // Animación de pulso con duración y delay distintos por punto
+      .style('animation', (_, i) =>
+        `map-pulse ${getPulseDuration(i).toFixed(2)}s ${getPulseDelay(i).toFixed(2)}s ease-in-out infinite`
+      )
       .on('mouseover', function (event, d) {
         setTooltipRef.current({
           x: event.clientX,
@@ -189,7 +239,7 @@ export default function ArgentinaMapScroll() {
           localidad: d.localidad,
           provincia: d.provincia,
           poblacion: d.poblacion,
-          tasaDePrivaciones: d.tasaDePrivaciones,
+          tasaDePrivaciones: 1 - d.tasaDePrivaciones,
         });
       })
       .on('mouseout', () => setTooltipRef.current(null))
@@ -210,18 +260,30 @@ export default function ArgentinaMapScroll() {
       .append('title')
       .text(
         (d) =>
-          `${d.localidad}, ${d.provincia}${d.poblacion ? ` · ${d.poblacion.toLocaleString('es-AR')} hab.` : ''}${d.tasaDePrivaciones != null ? ` · Tasa de privaciones: ${d.tasaDePrivaciones.toFixed(1)}%` : ''}`
+          `${d.localidad}, ${d.provincia}${d.poblacion ? ` · ${d.poblacion.toLocaleString('es-AR')} hab.` : ''}${d.tasaDePrivaciones != null ? ` · Tasa sin privaciones: ${d.tasaDePrivaciones.toFixed(1)}%` : ''}`
       );
-  }, [geoData, scale, projectionReady, redrawKey, svgSize, localidades, mapStepEntered]);
+  }, [geoData, projectionReady, redrawKey, svgSize, localidades, mapStepEntered]);
+
+  // Actualizar solo el transform del grupo al hacer scroll (sin redibujar todo)
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const { w: cw, h: ch } = svgSize;
+    const cx = cw / 2;
+    const cy = ch / 2;
+    d3.select(svgRef.current)
+      .select('#map-g')
+      .attr('transform', `translate(${cx},${cy}) scale(${scale}) translate(${-cx},${-cy})`);
+  }, [scale, svgSize]);
 
   const { w: svgW, h: svgH } = svgSize;
   const cardY = step2Progress <= 0 ? 100 : (1 - 2 * step2Progress) * 100;
+  const textOpacity = step3Progress;
 
   return (
     <section
       ref={sectionRef}
       className="relative"
-      style={{ minHeight: `calc(${ZOOM_SCROLL_PX + CARD_SCROLL_PX}px + 50vh)` }}
+      style={{ minHeight: `calc(${ZOOM_SCROLL_PX + CARD_SCROLL_PX + TEXT_SCROLL_PX}px + 50vh)` }}
     >
       <div className="sticky top-0 left-0 w-full h-screen flex items-center justify-center bg-navy overflow-x">
 
@@ -234,26 +296,48 @@ export default function ArgentinaMapScroll() {
         {/* Tooltip al hacer hover sobre un punto */}
         {tooltip && (
           <div
-            className="pointer-events-none fixed z-10 rounded-lg bg-navy/95 px-3 py-2 text-sm text-white shadow-lg"
+            className="pointer-events-none fixed z-10 text-sm text-black"
             style={{
-              left: tooltip.x + 12,
-              top: tooltip.y + 12,
+              left: tooltip.x,
+              bottom: `calc(100vh - ${tooltip.y}px + 12px)`,
+              transform: 'translateX(-50%)',
             }}
           >
-            <div className="font-medium">{tooltip.localidad}</div>
-            <div className="text-white/80">{tooltip.provincia}</div>
-            {tooltip.poblacion != null && (
-              <div className="mt-1 text-white/70">
-                {tooltip.poblacion.toLocaleString('es-AR')} hab.
-              </div>
-            )}
+            <div className="relative border border-black bg-white px-3 py-2 shadow-lg">
+              {/* Triángulo apuntando hacia abajo */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: -6,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 0,
+                  height: 0,
+                  borderLeft: '6px solid transparent',
+                  borderRight: '6px solid transparent',
+                  borderTop: '6px solid black',
+                }}
+              />
+            <div className="uppercase text-black/70">{tooltip.provincia}</div>
+            <div className="font-bold">{tooltip.localidad}</div>
             {tooltip.tasaDePrivaciones != null && (
-              <div className="mt-1 text-white/70">
-                Tasa de privaciones: {Number(tooltip.tasaDePrivaciones).toFixed(1)}%
+              <div className="mt-1 text-black border-t pt-1 border-[#86898B4D]">
+                <b>{Number(1 - tooltip.tasaDePrivaciones).toFixed(1)}%</b> Privaciones materiales
               </div>
             )}
+            </div>
           </div>
         )}
+
+        {/* Texto blanco abajo a la derecha (paso 3) */}
+        <div
+          className="absolute bottom-12 left-8 max-w-sm text-left pointer-events-none"
+          style={{ opacity: textOpacity, transition: 'opacity 0.1s linear' }}
+        >
+          <p className="text-white text-lg font-regular leading-snug">
+            Este mapa muestra las tres localidades más grandes de cada provincia y combina indicadores de privación material, condiciones socioeconómicas y tiempos de acceso a servicios clave, como salud y educación en la primera infancia.
+          </p>
+        </div>
 
         {/* Card que entra desde abajo a la derecha y sale por arriba (paso 2) */}
         <ScrollCard

@@ -45,6 +45,13 @@ export default function ScrollyStack({
           style={{ opacity: visibleSet.has(num) ? 1 : 0, zIndex: totalImages - num + 1 }}
         />
       ))}
+        <img
+          key={0}
+          src={withBase(`${folderPath}/0.png`)}
+          alt=""
+          className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none transition-opacity duration-200 ease-out"
+          style={{ opacity: 1, zIndex: 1 }}
+        />
     </div>
   );
 }
