@@ -106,6 +106,7 @@ export default function MapAccessibilitySection() {
         id: 'localidades-10km-extrusion',
         type: 'fill-extrusion',
         source: 'localidades_transformadas_5km',
+        filter: ['!=', ['get', currentMetricRef.current], null],
         paint: {
           'fill-extrusion-color': EXTRUSION_COLOR_BY_TIPO,
           'fill-extrusion-opacity': 0.78,
@@ -255,6 +256,11 @@ export default function MapAccessibilitySection() {
         const feature = e.features?.[0];
         if (!feature) return;
         const props = feature.properties;
+        const metricValue = props[currentMetricRef.current];
+        if (metricValue == null) {
+          popup.remove();
+          return;
+        }
         const tipoLabel = tipoLabels[props.tipo] || props.tipo;
         const metricLabel = currentMetricRef.current === 'tiempo_medio_01' ? 'Menores ingresos' : 'Mayores ingresos';
         popup
@@ -317,8 +323,8 @@ export default function MapAccessibilitySection() {
         '*',
         [
           '+',
-          ['*', ['get', fromMetric], 1 - eased],
-          ['*', ['get', toMetric], eased],
+          ['*', ['coalesce', ['get', fromMetric], 0], 1 - eased],
+          ['*', ['coalesce', ['get', toMetric], 0], eased],
         ],
         EXTRUSION_HEIGHT_FACTOR,
       ]);
@@ -333,6 +339,7 @@ export default function MapAccessibilitySection() {
         ['get', toMetric],
         EXTRUSION_HEIGHT_FACTOR,
       ]);
+      map.setFilter('localidades-10km-extrusion', ['!=', ['get', toMetric], null]);
       currentMetricRef.current = toMetric;
       extrusionAnimRafRef.current = null;
     };
