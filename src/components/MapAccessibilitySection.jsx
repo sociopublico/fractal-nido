@@ -75,7 +75,7 @@ export default function MapAccessibilitySection() {
 
       let localidadesGeoJson = null;
       try {
-        const raw = await fetch(withBase('shapes/tiempos.geojson')).then((r) => r.text());
+        const raw = await fetch(withBase('shapes/tiempos-v2.geojson')).then((r) => r.text());
         const sanitized = raw.replace(/:\s*NaN/g, ': null');
         localidadesGeoJson = JSON.parse(sanitized);
       } catch {
