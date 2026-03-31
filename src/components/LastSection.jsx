@@ -28,7 +28,7 @@ export default function LastSection() {
           
           </p>
 
-      <img src={withBase('b&b.png')} alt="Logo"  width={100} height={150} className="mx-auto mb-20" />
+      <img src={withBase('b&b.png')} alt="Logo"  width={180} height={150} className="mx-auto mb-20" />
       </div>
     </div>
     </section>

@@ -9,13 +9,13 @@ const EXTRUSION_COLOR_BY_TIPO = [
   'match',
   ['get', 'tipo'],
   'salud',
-  '#CA2626',
+  '#09A9E7',
   'jardin',
-  '#E3BF2D',
+  '#FD4E51',
   'esp_verde',
-  '#00A1DE',
+  '#FEBE00',
   'esp_verdes',
-  '#00A1DE',
+  '#FEBE00',
   '#cccccc',
 ];
 const EXTRUSION_HEIGHT_FACTOR = 400;
@@ -109,7 +109,7 @@ export default function MapAccessibilitySection() {
         filter: ['!=', ['get', currentMetricRef.current], null],
         paint: {
           'fill-extrusion-color': EXTRUSION_COLOR_BY_TIPO,
-          'fill-extrusion-opacity': 0.78,
+          'fill-extrusion-opacity': 1,
           'fill-extrusion-height': ['*', ['get', currentMetricRef.current], EXTRUSION_HEIGHT_FACTOR],
           'fill-extrusion-base': 0,
         },
@@ -234,10 +234,10 @@ export default function MapAccessibilitySection() {
       const tipoLabels = {
         salud: 'Centro de salud',
         jardin: 'Jardín de infantes',
-        esp_verde: 'Espacios verdes',
-        esp_verdes: 'Espacios verdes',
+        esp_verde: 'Espacio verde',
+        esp_verdes: 'Espacio verde',
       };
-      const formatMin = (v) => (v != null ? `${Math.round(v)} min` : '—');
+      const formatMin = (v) => (v != null ? `${v === 240 ? "+240" : Math.round(v)} min` : '—');
 
       const popup = new mapboxgl.Popup({
         closeButton: false,
@@ -266,14 +266,10 @@ export default function MapAccessibilitySection() {
         popup
           .setLngLat(e.lngLat)
           .setHTML(
-            `<div style="padding:8px 12px;font-size:12px;color:black;">
-              <div style="letter-spacing: 1.4px; text-transform:uppercase;font-size:11px;margin-bottom:-2px">${metricLabel}</div>
-              <div style="font-weight:700;font-size:13px;margin-bottom:6px">${props.localidad || '—'}</div>
-              <div style="border-top:1px solid rgba(134,137,139,0.3);padding-top:6px">
-                <strong>${formatMin(props[currentMetricRef.current])}</strong> 
-              </div>
-              <div style="text-transform: uppercase; font-size: 12px; margin-top: -5px;">
-                hasta el ${tipoLabel} más cercano
+            `<div style="padding:16px 20px; color: black;">
+              <div style="font-size: 16px;">
+                La población de ${metricLabel.toLowerCase()} de <b>${props.localidad || '—'}</b> debe caminar 
+                <b>${formatMin(props[currentMetricRef.current])}</b> a pie hasta el ${tipoLabel.toLowerCase()} más cercano.
               </div>
             </div>`
           )
@@ -367,6 +363,22 @@ export default function MapAccessibilitySection() {
         </div>
 
         <div ref={mapContainerRef} className="absolute inset-0" />
+
+        <div className="absolute top-4 right-4 z-10 flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={() => mapRef.current?.zoomIn()}
+            className="w-9 h-9 bg-white text-navy text-lg font-light flex items-center justify-center hover:bg-navy/10 transition-colors shadow-md rounded"
+            aria-label="Acercar"
+          >+</button>
+          <button
+            type="button"
+            onClick={() => mapRef.current?.zoomOut()}
+            className="w-9 h-9 bg-white text-navy text-lg font-light flex items-center justify-center hover:bg-navy/10 transition-colors shadow-md rounded"
+            aria-label="Alejar"
+          >−</button>
+        </div>
+
         {!mapReady && (
           <div className="absolute inset-0 bg-slate-100 flex items-center justify-center text-navy/60">
             Cargando mapa...
@@ -377,16 +389,16 @@ export default function MapAccessibilitySection() {
       <div className="w-full bg-[#0030870D] py-4 px-6 md:px-10">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center gap-6 text-sm text-black justify-center">
           <span className="inline-flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#CA2626]" />
-            Servicio de salud
+            <span className="w-3 h-3 rounded-full bg-[#09A9E7]" />
+            Centro de salud
           </span>
           <span className="inline-flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#E3BF2D]" />
+            <span className="w-3 h-3 rounded-full bg-[#FD4E51]" />
             Jardín de infantes
           </span>
           <span className="inline-flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#00A1DE]" />
-            Espacios verdes
+            <span className="w-3 h-3 rounded-full bg-[#FEBE00]" />
+            Espacio verde
           </span>
         </div>
       </div>

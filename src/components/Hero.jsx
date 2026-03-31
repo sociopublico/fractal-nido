@@ -9,8 +9,10 @@ export default function Hero() {
           En Argentina, no todos parten desde el mismo lugar.
         </h1>
       </section>
-      <img src={withBase('header.png')} alt="Header" 
-      className="w-full object-cover object-left h-[250px]" />
+      <div className="h-[400px] overflow-hidden">
+        <img src={withBase('header.png')} alt="Header"
+        className="w-full object-cover object-top-left h-[600px] -mt-[190px]" />
+      </div>
     </div>
   );
 }

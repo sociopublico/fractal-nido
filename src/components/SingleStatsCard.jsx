@@ -21,7 +21,7 @@ export default function SingleStatsCard({ children, color = 'menorIngreso', text
       <div className="p-8">
         {children}
       </div>
-      <div className='bg-mayorIngreso p-6 text-white'>
+      <div className='bg-mayorIngreso p-6 text-white relative top-1'>
         <img src={withBase('arrow.png')} alt="" className="w-6 h-6 mb-4 rotate-180" />
 
         <p className="text-3xl font-bold">+ de 2hs </p>

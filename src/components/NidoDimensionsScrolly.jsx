@@ -94,12 +94,12 @@ export default function NidoDimensionsScrolly() {
       style={{ minHeight: `calc(${CARD_SCROLL_PX * dimensions.length}px + 120vh)` }}
     >
       <div className="sticky top-0 min-h-screen flex items-center py-16">
-        <div className="w-full max-w-8xl mx-auto px-12 md:px-12">
+        <div className="w-full max-w-7xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-medium text-black leading-tight max-w-4xl mx-auto mb-24">
             El Índice NIDO reúne cuatro dimensiones que moldean las oportunidades desde el nacimiento.
           </h2>
 
-          <div className="mt-10 grid grid-cols-4 gap-4 md:gap-5">
+          <div className="mt-10 grid grid-cols-4 gap-8">
             {dimensions.map((dimension, index) => {
               const isActive = index < activeCardsCount;
               const Icon = dimension.Icon;
@@ -107,7 +107,7 @@ export default function NidoDimensionsScrolly() {
               return (
                 <article
                   key={dimension.label}
-                  className="relative rounded bg-white p-4 md:p-5 shadow-lg transition-all duration-300 ease-out will-change-transform"
+                  className="relative rounded bg-white p-6 shadow-lg transition-all duration-300 ease-out will-change-transform"
                   style={{
                     opacity: isActive ? 1 : 0.22,
                     transform: isActive ? 'translateY(0) scale(1)' : 'translateY(22px) scale(0.97)',

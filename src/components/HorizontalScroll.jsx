@@ -6,20 +6,17 @@ import ScrollyStack from './ScrollyStack';
 import ParallaxStack from './ParallaxStack';
 import { withBase } from '../utils/withBase';
 
-const SCROLL_STEP_1_PX = 400;
-const SCROLL_STEP_2_PX = 400;
-const SCROLL_STEP_3_PX = 400;
-const SCROLL_STEP_4_PX = 400;
+const SCROLL_STEP_PX = 100; // px de scroll vertical por cada imagen que se suma
 const SLIDE_SCROLL_PX = 2500; // px de scroll vertical para recorrer todo el strip
 
-const SCROLLY_PHASE_END_PX = SCROLL_STEP_1_PX + SCROLL_STEP_2_PX + SCROLL_STEP_3_PX + SCROLL_STEP_4_PX;
+// Orden en que se van sumando las imágenes del ScrollyStack (configurable)
+const SCROLLY_IMAGE_ORDER = [0, 10, 11, 12, 13, 14, 15, 16, 17, 6, 7, 8, 9, 1, 2, 3, 4, 5];
 
-const SCROLLY_STEPS = [
-  [0],
-  [10, 11, 12, 13, 14, 15, 16, 17, 0],
-  [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 0],
-  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 0],
-];
+// Genera los pasos automáticamente: cada step agrega una imagen al conjunto visible
+const SCROLLY_STEPS = SCROLLY_IMAGE_ORDER.map((_, i) => SCROLLY_IMAGE_ORDER.slice(0, i + 1));
+
+const SCROLLY_PHASE_END_PX = SCROLLY_IMAGE_ORDER.length * SCROLL_STEP_PX;
+
 
 const cardStyle = { position: 'relative', top: 'auto', transform: 'none' };
 
@@ -27,6 +24,7 @@ export default function HorizontalScroll() {
   const sectionRef = useRef(null);
   const stripRef = useRef(null);
   const [scrollyStep, setScrollyStep] = useState(0);
+  const [patternProgress, setPatternProgress] = useState(0);
   const [slideX, setSlideX] = useState(0);
 
   useEffect(() => {
@@ -38,20 +36,13 @@ export default function HorizontalScroll() {
       const sectionTop = rect.top + window.scrollY;
       const progress = Math.max(0, window.scrollY - sectionTop + window.innerHeight * 0.3);
 
-      if (progress < SCROLL_STEP_1_PX) {
-        setScrollyStep(0);
-        setSlideX(0);
-      } else if (progress < SCROLL_STEP_1_PX + SCROLL_STEP_2_PX) {
-        setScrollyStep(1);
-        setSlideX(0);
-      } else if (progress < SCROLL_STEP_1_PX + SCROLL_STEP_2_PX + SCROLL_STEP_3_PX) {
-        setScrollyStep(2);
-        setSlideX(0);
-      } else if (progress < SCROLLY_PHASE_END_PX) {
-        setScrollyStep(3);
+      if (progress < SCROLLY_PHASE_END_PX) {
+        setScrollyStep(Math.floor(progress / SCROLL_STEP_PX));
+        setPatternProgress(progress / SCROLLY_PHASE_END_PX);
         setSlideX(0);
       } else {
-        setScrollyStep(3);
+        setPatternProgress(1);
+        setScrollyStep(SCROLLY_STEPS.length - 1);
         const sp = Math.min(1, (progress - SCROLLY_PHASE_END_PX) / SLIDE_SCROLL_PX);
         const strip = stripRef.current;
         const maxScrollX = strip ? strip.scrollWidth - window.innerWidth : 0;
@@ -93,6 +84,7 @@ export default function HorizontalScroll() {
                 totalImages={18}
                 steps={SCROLLY_STEPS}
                 currentStep={scrollyStep}
+                patternProgress={patternProgress}
                 className="w-full h-full"
               />
             </div>
@@ -110,7 +102,7 @@ export default function HorizontalScroll() {
 
             <ParallaxStack
               slideX={slideX}
-              className="h-[80vh] w-[50vw]"
+              className="h-[80vh] w-[70vw]"
               layers={[
                 { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
                 { src: withBase('scrolly1/22.png'), visible: true, speed: 0.1, initialX: 200 },
@@ -132,20 +124,20 @@ export default function HorizontalScroll() {
                 style={{ zIndex: 1000 }}
               >
                 <p className="text-lg text-gray-700 leading-relaxed">
-                  En las grandes ciudades, <span className="font-bold text-cyan">1 de cada 5 niños y niñas</span> de hogares de menor nivel socioeconómico no tiene acceso a espacios verdes, mientras que esta situación afecta solo a <span className="font-bold">1 de cada 25 niños y niñas</span> de hogares con mayores ingresos.<br />
-                  Este caso muestra que no todos los barrios ofrecen las mismas oportunidades de acceder a espacios verdes, aun estando dentro de la misma ciudad.<br />
+                  En las grandes ciudades, <span className="font-bold text-cyan">1 de cada 5 niños y niñas</span> de hogares de menor nivel socioeconómico no tiene acceso a espacios verdes, mientras que esta situación afecta solo a <span className="font-bold">1 de cada 25 niños y niñas</span> de hogares con mayores ingresos.<br /><br />
+                  Este caso muestra que no todos los barrios ofrecen las mismas oportunidades de acceder a espacios verdes, aun estando dentro de la misma ciudad.<br /><br />
                   Los espacios verdes ofrecen oportunidades de movimiento, exploración y calma, que fortalecen tanto la salud como el desarrollo cognitivo de los niños y niñas.
                 </p>
               </StatsCard>
             </div>
             <ParallaxStack
               slideX={slideX}
-              className="h-[80vh] w-[50vw] -mr-48"
+              className="h-[80vh] w-[70vw] -mr-48"
               layers={[
                 { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
                 { src: withBase('scrolly1/21.png'), visible: true, speed: 0.09, initialX: 150 },
                 { src: withBase('scrolly1/26.png'), visible: true, speed: 0.02, initialX: 100 },
-                { src: withBase('scrolly1/25.png'), visible: true, speed: -0.6, initialX: -2000, maxX: 3000, debug: true },
+                { src: withBase('scrolly1/25.png'), visible: true, speed: -0.55, initialX: -2000, maxX: 3300, debug: true },
               ]}
             />
           
@@ -159,7 +151,7 @@ export default function HorizontalScroll() {
 
             <ParallaxStack
               slideX={slideX}
-              className="h-[80vh] w-[50vw] -ml-48"
+              className="h-[80vh] w-[70vw] -ml-48"
               layers={[
                 { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
                 { src: withBase('scrolly1/21.png'), visible: true, speed: 0.09, initialX: 150 },
@@ -183,7 +175,7 @@ export default function HorizontalScroll() {
             </div>
             <ParallaxStack
               slideX={slideX}
-              className="h-[80vh] w-[50vw] mt-48"
+              className="h-[80vh] w-[70vw] mt-48"
               layers={[
                 { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
                 { src: withBase('scrolly1/14.png'), visible: true, speed: 0 },
@@ -208,7 +200,7 @@ export default function HorizontalScroll() {
             </div>
             <ParallaxStack
               slideX={slideX}
-              className="h-[80vh] w-[60vw] -ml-[600px]"
+              className="h-[80vh] w-[70vw] -ml-[400px] mr-[120px]"
               layers={[
                 { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
                 { src: withBase('scrolly1/24.png'), visible: true, speed: 0.02, 
@@ -218,7 +210,9 @@ export default function HorizontalScroll() {
             <ScrollCard
             className='ml-48 mr-16 overflow-hidden'
               title="Amanda nació en un pequeño pueblo rural, a más de cuatro horas de la capital de su provincia."
-              style={{ ...cardStyle, width: 650 }}
+              style={{ ...cardStyle, width: 580, marginRight: "calc(50vw - 325px)", marginLeft: 0 }}
+              styleCard={{ padding: 48 }}
+              pattern={false}
             >
               En su zona no hay un jardín de infantes cercano, por lo que Amanda no va todos los días.
               Las opciones de educación inicial requieren trasladarse a otras localidades, así que las familias de la zona organizan esos recorridos según sus tiempos y posibilidades.

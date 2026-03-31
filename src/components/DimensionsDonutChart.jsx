@@ -173,19 +173,50 @@ export default function DimensionsDonutChart() {
       .delay(totalArcsAnimation + 500)
       .duration(280)
       .attr('opacity', 1);
+
+    const HOVER_OFFSET = 10;
+
+    paths
+      .style('cursor', 'pointer')
+      .on('mouseenter', function (_event, d) {
+        const midAngle = (d.startAngle + d.endAngle) / 2;
+        const tx = Math.sin(midAngle) * HOVER_OFFSET;
+        const ty = -Math.cos(midAngle) * HOVER_OFFSET;
+        const idx = arcsData.indexOf(d);
+
+        paths.transition().duration(160)
+          .attr('opacity', 0.25)
+          .attr('transform', 'translate(0,0)');
+
+        d3.select(this).transition().duration(160)
+          .attr('opacity', 1)
+          .attr('transform', `translate(${tx},${ty})`);
+
+        refsGroup.selectAll('text, line, circle')
+          .transition().duration(160)
+          .attr('opacity', 0.15);
+
+        refsGroup.selectAll('text, line, circle')
+          .filter((ld) => ld === referencePoints[idx])
+          .transition().duration(160)
+          .attr('opacity', 1);
+      })
+      .on('mouseleave', function () {
+        paths.transition().duration(200)
+          .attr('opacity', 1)
+          .attr('transform', 'translate(0,0)');
+
+        refsGroup.selectAll('text, line, circle')
+          .transition().duration(200)
+          .attr('opacity', 1);
+      });
   }, [isVisible]);
 
   return (
     <div ref={containerRef} className="w-full mt-16">
-      <h3 className="text-lg text-black text-center">
-        <b>Gráfico N°1:</b> Porcentaje de ponderación por dimensión de análisis
-      </h3>
-      <div className="mt-6 w-full">
+      <div className="-mt-12 w-full">
         <svg ref={svgRef} className="w-full h-auto max-h-[580px]" />
       </div>
-      <p className="text-lg text-black/80 text-center mt-3 pb-24">
-        Fuente: elaboración propia.
-      </p>
     </div>
   );
 }

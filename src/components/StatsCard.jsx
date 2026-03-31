@@ -26,12 +26,13 @@ export default function StatsCard({ children, textoMenorIngreso, textoMayorIngre
         <img src={withBase('arrow.png')} alt="Green Icon" className="w-6 h-6 mb-4 rotate-180" />
           <p className="text-3xl font-bold">{numMenorIngreso ?? '—'} de cada {total ?? '—'}</p>
           <p className="text-sm  font-regular uppercase">de menor nivel socioeconómico no accede a espacios verdes</p>
-          <div className="flex items-bottom justify-left flex-wrap gap-2 mt-4" >
-            {Array.from({ length: total - numMenorIngreso}).map((_, index) => 
-              <WalkingPerson key={index} size={16} />
-            )}
+          <div className="flex items-end justify-left flex-wrap gap-2 mt-4" >
+            
             {Array.from({ length: numMenorIngreso }).map((_, index) => 
               <WalkingPerson key={index} size={24} />
+            )}
+            {Array.from({ length: total - numMenorIngreso}).map((_, index) => 
+              <WalkingPerson key={index} size={16} />
             )}
             
           </div>
@@ -40,13 +41,14 @@ export default function StatsCard({ children, textoMenorIngreso, textoMayorIngre
         <img src={withBase('arrow.png')} alt="Green Icon" className="w-6 h-6 mb-4" />
           <p className="text-3xl font-bold">{numMayorIngreso ?? '—'} de cada {total ?? '—'}</p>
           <p className="text-sm  font-regular uppercase">de mayor nivel socioeconómico no accede a espacios verdes</p>
-          <div className="flex items-bottom justify-left flex-wrap gap-2 mt-4" >
-            {Array.from({ length: total - numMayorIngreso}).map((_, index) => 
-              <WalkingPerson key={index} size={16} />
-            )}
+          <div className="flex items-end justify-left flex-wrap gap-2 mt-4" >
+
             
             {Array.from({ length: numMayorIngreso }).map((_, index) => 
               <WalkingPerson key={index} size={24} />
+            )}
+            {Array.from({ length: total - numMayorIngreso}).map((_, index) => 
+              <WalkingPerson key={index} size={16} />
             )}
           </div>
 

@@ -1,4 +1,5 @@
 import { withBase } from '../utils/withBase';
+import PatternAnimated from './PatternAnimated';
 
 /**
  * ScrollyStack: varias imágenes superpuestas (carpeta con 01..18).
@@ -17,6 +18,7 @@ export default function ScrollyStack({
   totalImages = 18,
   steps = [[1], [1, 2], [1, 2, 3]],
   currentStep = 0,
+  patternProgress = 0,
   className = '',
   style = {},
 }) {
@@ -45,13 +47,9 @@ export default function ScrollyStack({
           style={{ opacity: visibleSet.has(num) ? 1 : 0, zIndex: totalImages - num + 1 }}
         />
       ))}
-        <img
-          key={0}
-          src={withBase(`${folderPath}/0.png`)}
-          alt=""
-          className="absolute inset-0 w-full h-full object-contain object-center pointer-events-none transition-opacity duration-200 ease-out"
-          style={{ opacity: 1, zIndex: 1 }}
-        />
+        <div className="absolute inset-0 max-w-[60vw] mx-auto mt-[15vh] pointer-events-none flex items-center justify-center" style={{ zIndex: 1 }}>
+          <PatternAnimated progress={patternProgress} />
+        </div>
     </div>
   );
 }
