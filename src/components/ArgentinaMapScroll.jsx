@@ -31,7 +31,7 @@ export default function ArgentinaMapScroll() {
   const [tooltip, setTooltip] = useState(null);
   const [projectionReady, setProjectionReady] = useState(false);
   const [redrawKey, setRedrawKey] = useState(0);
-  const [svgSize, setSvgSize] = useState({ w: 800, h: 600 });
+  const [svgSize, setSvgSize] = useState({ w: 800, h: 500 });
   const projectionRef = useRef(null);
   const pathGeneratorRef = useRef(null);
   const baseScaleRef = useRef(1);
@@ -122,8 +122,7 @@ export default function ArgentinaMapScroll() {
   useEffect(() => {
     if (!geoData || !svgRef.current || !pathGeneratorRef.current || !projectionRef.current) return;
 
-    const path = pathGeneratorRef.current(geoData);
-    if (!path) return;
+    if (!geoData.features?.length) return;
 
     const proj = projectionRef.current;
     const { w: cw, h: ch } = svgSize;
@@ -170,8 +169,11 @@ export default function ArgentinaMapScroll() {
       .attr('id', 'map-g')
       .attr('transform', `translate(${cx},${cy}) scale(${scale}) translate(${-cx},${-cy})`);
 
-    g.append('path')
-      .attr('d', path)
+    g.selectAll('.province')
+      .data(geoData.features)
+      .join('path')
+      .attr('class', 'province')
+      .attr('d', pathGeneratorRef.current)
       .attr('fill', '#003087')
       .attr('stroke', '#00A1DE33')
       .attr('stroke-width', 1.5);
@@ -289,7 +291,7 @@ export default function ArgentinaMapScroll() {
 
         <svg
           ref={svgRef}
-          className="absolute inset-0 w-full h-full"
+          className="absolute inset-0 w-full h-[96%]"
           viewBox={`0 -30 ${svgW} ${svgH}`}
           preserveAspectRatio="xMidYMid meet"
         />

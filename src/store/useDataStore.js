@@ -1,12 +1,10 @@
 import { create } from 'zustand';
 import * as d3 from 'd3';
-import { feature } from 'topojson-client';
+import { withBase } from '../utils/withBase';
 
-const WORLD_ATLAS_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 const LOCALIDADES_CSV_URL =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vS4qmx1XopDwvHxBj574EUmjT9XlM4OdvxP_DameDIq8qadGzBx1AlWb7BQirXwyvf37FacyS5OJZIw/pub?gid=1970511762&single=true&output=csv';
 
-const ARGENTINA_ID = '032';
 const TASA_DE_PRIVACIONES_KEYS = ['tasa de privaciones', 'tasa_sin_privaciones', 'tasaDePrivaciones', 'privaciones'];
 
 function parseLocalidades(rows) {
@@ -47,13 +45,9 @@ export const useDataStore = create((set, get) => ({
     if (get().geoData) return;
     set({ geoLoading: true, geoError: null });
     try {
-      const topology = await d3.json(WORLD_ATLAS_URL);
-      if (!topology) return;
-      const countries = feature(topology, topology.objects.countries);
-      const argentina = countries.features.find(
-        (d) => String(d.id) === ARGENTINA_ID || d.id === 32
-      );
-      set({ geoData: argentina ?? null, geoLoading: false, geoError: null });
+      const geojson = await d3.json(withBase('shapes/provincias.json'));
+      if (!geojson) return;
+      set({ geoData: geojson, geoLoading: false, geoError: null });
     } catch (err) {
       console.error(err);
       set({ geoError: err, geoLoading: false });
