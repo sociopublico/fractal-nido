@@ -13,9 +13,9 @@ const EXTRUSION_COLOR_BY_TIPO = [
   'jardin',
   '#FD4E51',
   'esp_verde',
-  '#FEBE00',
+  '#0FBC02',
   'esp_verdes',
-  '#FEBE00',
+  '#0FBC02',
   '#cccccc',
 ];
 const EXTRUSION_HEIGHT_FACTOR = 400;
@@ -29,7 +29,6 @@ const metricOptions = [
 export default function MapAccessibilitySection() {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
-  const cameraLogRafRef = useRef(null);
   const extrusionAnimRafRef = useRef(null);
   const popupRef = useRef(null);
   const [mapReady, setMapReady] = useState(false);
@@ -53,6 +52,8 @@ export default function MapAccessibilitySection() {
       style: 'mapbox://styles/mapbox/light-v11',
       center: [-64.42249, -33.35525],
       zoom: 5.69,
+      minZoom: 4,
+      maxZoom: 10,
       projection: 'mercator',
       bearing: -15,
       antialias: true,
@@ -182,20 +183,6 @@ export default function MapAccessibilitySection() {
         },
       });
 
-      const logCamera = () => {
-        if (cameraLogRafRef.current != null) return;
-        cameraLogRafRef.current = window.requestAnimationFrame(() => {
-          cameraLogRafRef.current = null;
-          const center = map.getCenter();
-          console.log(
-            `[mapbox] zoom=${map.getZoom().toFixed(2)} center=[${center.lng.toFixed(5)}, ${center.lat.toFixed(5)}]`
-          );
-        });
-      };
-
-      map.on('move', logCamera);
-      map.on('zoom', logCamera);
-
       // Water color
       map.getStyle().layers?.forEach((layer) => {
         const sl = layer['source-layer'];
@@ -285,9 +272,6 @@ export default function MapAccessibilitySection() {
     });
 
     return () => {
-      if (cameraLogRafRef.current != null) {
-        window.cancelAnimationFrame(cameraLogRafRef.current);
-      }
       if (extrusionAnimRafRef.current != null) {
         window.cancelAnimationFrame(extrusionAnimRafRef.current);
       }
@@ -397,7 +381,7 @@ export default function MapAccessibilitySection() {
             Jardín de infantes
           </span>
           <span className="inline-flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#FEBE00]" />
+            <span className="w-3 h-3 rounded-full bg-[#0FBC02]" />
             Espacio verde
           </span>
         </div>

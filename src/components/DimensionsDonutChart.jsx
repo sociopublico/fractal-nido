@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
 const CHART_DATA = [
-  { label: 'Espacios verdes', value: 15, color: '#FEBE00' },
+  { label: 'Espacios verdes', value: 15, color: '#0FBC02' },
   { label: 'Salud', value: 33, color: '#09A9E7' },
   { label: 'Contexto socioeconómico', value: 25, color: '#86898B' },
   { label: 'Educación', value: 27, color: '#FD4E51' },

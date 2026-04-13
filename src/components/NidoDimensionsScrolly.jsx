@@ -24,7 +24,7 @@ const dimensions = [
   {
     label: 'Contexto',  
     description:
-      'Por último, el <b>contexto</b> reúne los recursos materiales, sociales y cognitivos con los que cuentan las familias, desde las condiciones del hogar y la seguridad del barrio hasta la presencia de redes de apoyo. Estos factores que pueden potenciar o limitar el desarrollo durante la primera infancia.',
+      'Por último, el <b>contexto</b> reúne los recursos materiales, sociales y cognitivos con los que cuentan las familias, desde las condiciones del hogar y la seguridad del barrio hasta la presencia de redes de apoyo. Estos factores pueden potenciar o limitar el desarrollo durante la primera infancia.',
     Icon: ContextoIcon,
   },
 ];

@@ -13,7 +13,7 @@ export default function ScrollCard({ title, children, className = '', styleCard 
       {/* Imagen de fondo: se estira con la altura del contenido */}
       {pattern && <img src={withBase('card.png')} alt="" className="absolute inset-0 w-full h-full object-cover object-center z-0" />}
       {/* Contenido en flujo para que la card crezca en altura con el texto */}
-      <div className="relative z-10 p-10 max-h-[85vh] overflow-y-auto">
+      <div className="relative z-10 p-10 max-h-[85vh]">
         <div className={`bg-white shadow-lg rounded-sm p-8`} style={styleCard}>
           {title != null && title !== '' ? (
             <>
