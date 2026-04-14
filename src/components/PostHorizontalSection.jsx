@@ -26,6 +26,7 @@ export default function PostHorizontalSection() {
           <div className="max-w-3xl mx-auto md:px-10 pt-12">
             <p className="text-center px-16 text-lg font-light leading-tight mt-12 text-black">Las historias de Pedro, Lucila y Amanda son ficticias, pero las condiciones que los rodean son reales.</p>
             <h2 className="text-center text-4xl font-medium leading-tightest mt-12 text-black">Y definen sus posibilidades desde el primer día de vida.</h2>
+            <p className="text-center px-16 text-md font-light leading-tight mt-12 text-black">Este mapa muestra cuántos minutos toma llegar caminando, desde la localidad con mayor población de cada provincia, al servicio más cercano, y permite comparar las diferencias de acceso entre niveles de ingresos.</p>
           </div>
         <MapAccessibilitySection />
       </div>
