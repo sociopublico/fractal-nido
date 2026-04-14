@@ -124,7 +124,7 @@ export default function HorizontalScroll() {
                 style={{ zIndex: 1000 }}
               >
                 <p className="text-lg text-gray-700 leading-relaxed">
-                  En las grandes ciudades, <span className="font-bold text-cyan">1 de cada 5 niños y niñas</span> de hogares de menor nivel socioeconómico no tiene acceso a espacios verdes, mientras que esta situación afecta solo a <span className="font-bold">1 de cada 25 niños y niñas</span> de hogares con mayores ingresos.<br /><br />
+                  En las grandes ciudades, <span className="font-bold text-cyan">5 de cada 25 niños y niñas</span> de hogares de menor nivel socioeconómico no tiene acceso a espacios verdes, mientras que esta situación afecta solo a <span className="font-bold">1 de cada 25 niños y niñas</span> de hogares con mayores ingresos.<br /><br />
                   Este caso muestra que no todos los barrios ofrecen las mismas oportunidades de acceder a espacios verdes, aun estando dentro de la misma ciudad.<br /><br />
                   Los espacios verdes ofrecen oportunidades de movimiento, exploración y calma, que fortalecen tanto la salud como el desarrollo cognitivo de los niños y niñas.
                 </p>
