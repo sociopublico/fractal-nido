@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import ScrollCard from './ScrollCard';
 import { useDataStore } from '../store/useDataStore';
-import { withBase } from '../utils/withBase';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const ZOOM_SCROLL_PX = 500;
 const CARD_SCROLL_PX = 700;
@@ -21,7 +21,69 @@ const PRIVACION_RADIUS_MAX = POINT_RADIUS * 6;
 const getPulseDuration = (i) => 2.2 + (i * 0.41) % 1.8; // 2.2–4.0s
 const getPulseDelay = (i) => (i * 0.67) % 2.2;          // 0–2.2s
 
+/** Tooltip en mobile: no sale de pantalla; arriba/abajo según espacio; costados contrarios cerca de bordes. */
+function computeMobileTooltipPosition(clientX, clientY) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const pad = 10;
+  const gap = 12;
+  const approxH = 102;
+  const maxW = Math.min(300, vw - 2 * pad);
+  const halfW = maxW / 2;
+
+  const spaceAbove = clientY - pad;
+  const spaceBelow = vh - clientY - pad;
+  const placeBelow =
+    spaceAbove < approxH + gap && spaceBelow > Math.min(spaceAbove, approxH * 0.85);
+
+  const nearLeft = clientX < vw * 0.28;
+  const nearRight = clientX > vw * 0.72;
+
+  let left = clientX;
+  if (!nearLeft && !nearRight) {
+    if (left < pad + halfW) left = pad + halfW;
+    if (left > vw - pad - halfW) left = vw - pad - halfW;
+  }
+
+  let top;
+  let transform;
+  if (placeBelow) {
+    top = clientY + gap;
+    transform = 'translateX(-50%)';
+  } else {
+    top = clientY - gap;
+    transform = 'translate(-50%, -100%)';
+  }
+
+  let tooltipLeftEdge = left - halfW;
+
+  if (nearLeft) {
+    left = pad;
+    transform = placeBelow ? 'translate(0, 0)' : 'translate(0, -100%)';
+    tooltipLeftEdge = pad;
+  } else if (nearRight) {
+    left = vw - pad;
+    transform = placeBelow ? 'translate(-100%, 0)' : 'translate(-100%, -100%)';
+    tooltipLeftEdge = vw - pad - maxW;
+  }
+
+  const mArrowLeftPx = Math.round(Math.min(Math.max(clientX - tooltipLeftEdge, 12), maxW - 12));
+  const mArrowFromCenter = !nearLeft && !nearRight;
+  const mArrowOffsetX = mArrowFromCenter ? clientX - left : 0;
+
+  return {
+    mLeft: left,
+    mTop: top,
+    mTransform: transform,
+    mPlaceBelow: placeBelow,
+    mArrowFromCenter,
+    mArrowOffsetX,
+    mArrowLeftPx,
+  };
+}
+
 export default function ArgentinaMapScroll() {
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const sectionRef = useRef(null);
   const svgRef = useRef(null);
   const [scale, setScale] = useState(SCALE_START);
@@ -37,7 +99,12 @@ export default function ArgentinaMapScroll() {
   const baseScaleRef = useRef(1);
   const setTooltipRef = useRef(setTooltip);
   const hasAnimatedPointsRef = useRef(false);
+  const isMobileRef = useRef(isMobile);
   setTooltipRef.current = setTooltip;
+
+  useEffect(() => {
+    isMobileRef.current = isMobile;
+  }, [isMobile]);
 
   // Puntos solo cuando la sección del mapa entra en vista
   useEffect(() => {
@@ -235,18 +302,33 @@ export default function ArgentinaMapScroll() {
         `map-pulse ${getPulseDuration(i).toFixed(2)}s ${getPulseDelay(i).toFixed(2)}s ease-in-out infinite`
       )
       .on('mouseover', function (event, d) {
-        setTooltipRef.current({
+        const payload = {
           x: event.clientX,
           y: event.clientY,
           localidad: d.localidad,
           provincia: d.provincia,
           poblacion: d.poblacion,
           tasaDePrivaciones: 1 - d.tasaDePrivaciones,
-        });
+        };
+        if (isMobileRef.current) {
+          Object.assign(payload, computeMobileTooltipPosition(event.clientX, event.clientY));
+        }
+        setTooltipRef.current(payload);
       })
       .on('mouseout', () => setTooltipRef.current(null))
       .on('mousemove', (event) => {
-        setTooltipRef.current((t) => (t ? { ...t, x: event.clientX, y: event.clientY } : null));
+        setTooltipRef.current((t) => {
+          if (!t) return null;
+          if (isMobileRef.current) {
+            return {
+              ...t,
+              x: event.clientX,
+              y: event.clientY,
+              ...computeMobileTooltipPosition(event.clientX, event.clientY),
+            };
+          }
+          return { ...t, x: event.clientX, y: event.clientY };
+        });
       });
 
     if (shouldGrow) {
@@ -280,84 +362,172 @@ export default function ArgentinaMapScroll() {
   const { w: svgW, h: svgH } = svgSize;
   const cardY = step2Progress <= 0 ? 100 : (1 - 2 * step2Progress) * 100;
   const textOpacity = step3Progress;
+  const mapIntroText =
+    'Este mapa muestra las tres localidades más grandes de cada provincia y combina indicadores de privación material, condiciones socioeconómicas y tiempos de acceso a servicios clave, como salud y educación en la primera infancia.';
+
+  const mapTooltip =
+    tooltip &&
+    (isMobile && typeof tooltip.mLeft === 'number' ? (
+      <div
+        className="pointer-events-none fixed z-10 max-w-[min(300px,calc(100vw-20px))] text-sm text-black"
+        style={{
+          left: tooltip.mLeft,
+          top: tooltip.mTop,
+          transform: tooltip.mTransform,
+        }}
+      >
+        <div className="relative border border-black bg-white px-3 py-2 shadow-lg">
+          {tooltip.mPlaceBelow ? (
+            <div
+              className="pointer-events-none absolute h-0 w-0"
+              style={{
+                top: -6,
+                ...(tooltip.mArrowFromCenter
+                  ? {
+                      left: `calc(50% + ${tooltip.mArrowOffsetX}px)`,
+                      transform: 'translateX(-50%)',
+                    }
+                  : { left: tooltip.mArrowLeftPx, transform: 'none' }),
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderBottom: '6px solid black',
+              }}
+            />
+          ) : (
+            <div
+              className="pointer-events-none absolute h-0 w-0"
+              style={{
+                bottom: -6,
+                ...(tooltip.mArrowFromCenter
+                  ? {
+                      left: `calc(50% + ${tooltip.mArrowOffsetX}px)`,
+                      transform: 'translateX(-50%)',
+                    }
+                  : { left: tooltip.mArrowLeftPx, transform: 'none' }),
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: '6px solid black',
+              }}
+            />
+          )}
+          <div className="uppercase text-black/70">{tooltip.provincia}</div>
+          <div className="font-bold">{tooltip.localidad}</div>
+          {tooltip.tasaDePrivaciones != null && (
+            <div className="mt-1 border-t border-[#86898B4D] pt-1 text-black">
+              <b>{Number(1 - tooltip.tasaDePrivaciones).toFixed(1)}%</b> Privaciones materiales
+            </div>
+          )}
+        </div>
+      </div>
+    ) : !isMobile ? (
+      <div
+        className="pointer-events-none fixed z-10 text-sm text-black"
+        style={{
+          left: tooltip.x,
+          bottom: `calc(100vh - ${tooltip.y}px + 12px)`,
+          transform: 'translateX(-50%)',
+        }}
+      >
+        <div className="relative border border-black bg-white px-3 py-2 shadow-lg">
+          <div
+            style={{
+              position: 'absolute',
+              bottom: -6,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 0,
+              height: 0,
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderTop: '6px solid black',
+            }}
+          />
+          <div className="uppercase text-black/70">{tooltip.provincia}</div>
+          <div className="font-bold">{tooltip.localidad}</div>
+          {tooltip.tasaDePrivaciones != null && (
+            <div className="mt-1 border-t border-[#86898B4D] pt-1 text-black">
+              <b>{Number(1 - tooltip.tasaDePrivaciones).toFixed(1)}%</b> Privaciones materiales
+            </div>
+          )}
+        </div>
+      </div>
+    ) : null);
+
+  const scrollCardContent = (
+    <>
+      <span className="font-medium" style={{ color: '#00A1DE' }}>
+        Algunos niños y niñas nacen en entornos con menos oportunidades que otros.
+      </span>
+    </>
+  );
+
+  const scrollCardTitle = (
+    <>
+      El entorno puede <span style={{ color: '#00A1DE' }}>potenciar</span> o limitar esas oportunidades desde el
+      primer día.
+    </>
+  );
 
   return (
     <section
       ref={sectionRef}
-      className="relative"
-      style={{ minHeight: `calc(${ZOOM_SCROLL_PX + CARD_SCROLL_PX + TEXT_SCROLL_PX}px + 50vh)` }}
+      className="relative overflow-x-clip overflow-y-visible"
+      style={{
+        minHeight: `calc(${ZOOM_SCROLL_PX + CARD_SCROLL_PX + TEXT_SCROLL_PX}px + 50vh)`,
+      }}
     >
-      <div className="sticky top-0 left-0 w-full h-screen flex items-center justify-center bg-navy overflow-x">
+      {isMobile ? (
+        <>
+          <div className="sticky top-10 left-0 flex h-screen w-full flex-col overflow-x-clip overflow-y-visible bg-navy">
+            <div className="z-20 w-full shrink-0 px-4 py-6">
+              <p className="text-xs font-regular leading-snug text-white">{mapIntroText}</p>
+            </div>
 
-        <svg
-          ref={svgRef}
-          className="absolute inset-0 w-full h-[96%]"
-          viewBox={`0 -30 ${svgW} ${svgH}`}
-          preserveAspectRatio="xMidYMid meet"
-        />
-        {/* Tooltip al hacer hover sobre un punto */}
-        {tooltip && (
-          <div
-            className="pointer-events-none fixed z-10 text-sm text-black"
-            style={{
-              left: tooltip.x,
-              bottom: `calc(100vh - ${tooltip.y}px + 12px)`,
-              transform: 'translateX(-50%)',
-            }}
-          >
-            <div className="relative border border-black bg-white px-3 py-2 shadow-lg">
-              {/* Triángulo apuntando hacia abajo */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: -6,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 0,
-                  height: 0,
-                  borderLeft: '6px solid transparent',
-                  borderRight: '6px solid transparent',
-                  borderTop: '6px solid black',
-                }}
+            <div className="relative min-h-0 w-full flex-1 pb-12">
+              <svg
+                ref={svgRef}
+                className="absolute inset-0 h-full w-full"
+                viewBox={`0 10 ${svgW} ${svgH}`}
+                preserveAspectRatio="xMidYMid meet"
               />
-            <div className="uppercase text-black/70">{tooltip.provincia}</div>
-            <div className="font-bold">{tooltip.localidad}</div>
-            {tooltip.tasaDePrivaciones != null && (
-              <div className="mt-1 text-black border-t pt-1 border-[#86898B4D]">
-                <b>{Number(1 - tooltip.tasaDePrivaciones).toFixed(1)}%</b> Privaciones materiales
-              </div>
-            )}
+              {mapTooltip}
             </div>
           </div>
-        )}
 
-        {/* Texto blanco abajo a la derecha (paso 3) */}
-        <div
-          className="absolute bottom-12 left-8 max-w-sm text-left pointer-events-none"
-          style={{ opacity: textOpacity, transition: 'opacity 0.1s linear' }}
-        >
-          <p className="text-white text-lg font-regular leading-snug">
-            Este mapa muestra las tres localidades más grandes de cada provincia y combina indicadores de privación material, condiciones socioeconómicas y tiempos de acceso a servicios clave, como salud y educación en la primera infancia.
-          </p>
+          <div className="bg-navy px-4 pb-10 pt-6 mt-[100vh]">
+            <ScrollCard floating={false} title={scrollCardTitle} className="mx-auto w-full max-w-lg">
+              {scrollCardContent}
+            </ScrollCard>
+          </div>
+        </>
+      ) : (
+        <div className="sticky top-0 left-0 flex h-screen w-full items-center justify-center overflow-x-clip overflow-y-visible bg-navy">
+          <svg
+            ref={svgRef}
+            className="absolute inset-0 h-full w-full"
+            viewBox={`0 -30 ${svgW} ${svgH}`}
+            preserveAspectRatio="xMidYMid meet"
+          />
+          {mapTooltip}
+          <div
+            className="pointer-events-none absolute bottom-12 left-8 z-10 max-w-sm text-left"
+            style={{ opacity: textOpacity, transition: 'opacity 0.1s linear' }}
+          >
+            <p className="text-lg font-regular leading-snug text-white">{mapIntroText}</p>
+          </div>
+          <ScrollCard
+            floating
+            title={scrollCardTitle}
+            className="absolute right-0 z-30"
+            style={{
+              top: '50%',
+              transform: `translateY(calc(-50% + ${cardY}vh))`,
+            }}
+          >
+            {scrollCardContent}
+          </ScrollCard>
         </div>
-
-        {/* Card que entra desde abajo a la derecha y sale por arriba (paso 2) */}
-        <ScrollCard
-          className="absolute right-0"
-          style={{
-            top: '50%',
-            transform: `translateY(calc(-50% + ${cardY}vh))`,
-          }}
-        >
-          <h3 className="text-4xl mb-2 text-black font-medium leading-tightest">
-            El entorno puede{' '}
-            <span style={{ color: '#00A1DE' }}>potenciar</span> o limitar esas oportunidades desde el primer día.
-          </h3>
-          <p className="text-xl font-medium mt-12" style={{ color: '#00A1DE' }}>
-            Algunos niños y niñas nacen en entornos con menos oportunidades que otros.
-          </p>
-        </ScrollCard>
-      </div>
+      )}
     </section>
   );
 }

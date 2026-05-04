@@ -9,9 +9,12 @@ export default function Hero() {
           En Argentina, no todos parten desde el mismo lugar.
         </h1>
       </section>
-      <div className="h-[400px] overflow-hidden">
-        <img src={withBase('header.png')} alt="Header"
-        className="w-full object-cover object-top-left h-[600px] -mt-[190px]" />
+      <div className="flex md:h-[400px] h-[30vh] w-full items-center justify-center overflow-hidden">
+        <img
+          src={withBase('header.png')}
+          alt=""
+          className="h-full object-cover"
+        />
       </div>
     </div>
   );

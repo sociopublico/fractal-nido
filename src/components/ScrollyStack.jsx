@@ -19,6 +19,8 @@ export default function ScrollyStack({
   steps = [[1], [1, 2], [1, 2, 3]],
   currentStep = 0,
   patternProgress = 0,
+  /** Patrón animado más compacto (mobile / portrait). */
+  compactPattern = false,
   className = '',
   style = {},
 }) {
@@ -47,7 +49,12 @@ export default function ScrollyStack({
           style={{ opacity: visibleSet.has(num) ? 1 : 0, zIndex: totalImages - num + 1 }}
         />
       ))}
-        <div className="absolute inset-0 max-w-[60vw] mx-auto mt-[15vh] pointer-events-none flex items-center justify-center" style={{ zIndex: 1 }}>
+        <div
+          className={`pointer-events-none absolute inset-0 mx-auto flex items-center justify-center ${
+            compactPattern ? 'mt-[8vh] max-w-[92%]' : 'mt-[15vh] max-w-[60vw]'
+          }`}
+          style={{ zIndex: 1 }}
+        >
           <PatternAnimated progress={patternProgress} />
         </div>
     </div>
