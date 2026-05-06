@@ -4,6 +4,38 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { withBase } from '../utils/withBase';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+
+const MAP_ZOOM_MIN = 4;
+const MAP_ZOOM_MAX = 10;
+
+/** Bbox base de Argentina (sin margen). El paneo se limita a esto + margen variable según zoom. */
+const ARGENTINA_BBOX = {
+  west: -73.58,
+  south: -55.12,
+  east: -53.48,
+  north: -21.74,
+};
+
+/** Margen en grados: más grande con zoom out (vista amplia), más chico con zoom in. */
+const PAN_MARGIN_DEG_ZOOMED_OUT = 0.38;
+const PAN_MARGIN_DEG_ZOOMED_IN = 0.08;
+
+function clamp01(value) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function panMarginDegreesForZoom(zoom) {
+  const t = clamp01((zoom - MAP_ZOOM_MIN) / (MAP_ZOOM_MAX - MAP_ZOOM_MIN));
+  return PAN_MARGIN_DEG_ZOOMED_OUT + t * (PAN_MARGIN_DEG_ZOOMED_IN - PAN_MARGIN_DEG_ZOOMED_OUT);
+}
+
+function buildArgentinaMaxBounds(marginDeg) {
+  const { west, south, east, north } = ARGENTINA_BBOX;
+  return [
+    [west - marginDeg, south - marginDeg],
+    [east + marginDeg, north + marginDeg],
+  ];
+}
 const SALUD_FILTER = ['==', ['get', 'tipo'], 'salud'];
 const EXTRUSION_COLOR_BY_TIPO = [
   'match',
@@ -47,13 +79,15 @@ export default function MapAccessibilitySection() {
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
+    const initialZoom = 5.69;
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/light-v11',
       center: [-64.42249, -33.35525],
-      zoom: 5.69,
-      minZoom: 4,
-      maxZoom: 10,
+      zoom: initialZoom,
+      minZoom: MAP_ZOOM_MIN,
+      maxZoom: MAP_ZOOM_MAX,
+      maxBounds: buildArgentinaMaxBounds(panMarginDegreesForZoom(initialZoom)),
       projection: 'mercator',
       bearing: -15,
       antialias: true,
@@ -62,6 +96,20 @@ export default function MapAccessibilitySection() {
     mapRef.current = map;
     map.dragRotate.disable();
     map.touchZoomRotate.disableRotation();
+
+    let maxBoundsRaf = null;
+    const syncMaxBoundsToZoom = () => {
+      const z = map.getZoom();
+      map.setMaxBounds(buildArgentinaMaxBounds(panMarginDegreesForZoom(z)));
+    };
+    const scheduleSyncMaxBoundsToZoom = () => {
+      if (maxBoundsRaf != null) return;
+      maxBoundsRaf = window.requestAnimationFrame(() => {
+        maxBoundsRaf = null;
+        syncMaxBoundsToZoom();
+      });
+    };
+    map.on('zoom', scheduleSyncMaxBoundsToZoom);
 
     map.on('load', async () => {
       const firstSymbolLayer = map
@@ -268,10 +316,15 @@ export default function MapAccessibilitySection() {
         popup.remove();
       });
 
+      syncMaxBoundsToZoom();
       setMapReady(true);
     });
 
     return () => {
+      map.off('zoom', scheduleSyncMaxBoundsToZoom);
+      if (maxBoundsRaf != null) {
+        window.cancelAnimationFrame(maxBoundsRaf);
+      }
       if (extrusionAnimRafRef.current != null) {
         window.cancelAnimationFrame(extrusionAnimRafRef.current);
       }

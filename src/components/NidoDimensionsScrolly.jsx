@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const CARD_SCROLL_PX = 300;
@@ -121,6 +121,35 @@ export default function NidoDimensionsScrolly() {
     };
   }, [isMobile]);
 
+  const scrollToDimension = useCallback(
+    (index) => {
+      if (index < 0 || index >= dimensions.length) return;
+
+      if (isMobile) {
+        cardRefs.current[index]?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+        return;
+      }
+
+      const section = sectionRef.current;
+      if (!section) return;
+
+      const viewport = window.innerHeight;
+      const sectionRect = section.getBoundingClientRect();
+      const sectionTop = sectionRect.top + window.scrollY;
+      const sectionHeight = section.offsetHeight;
+      const startScrollY = sectionTop - viewport * 0.2;
+      const scrollRange = Math.max(1, sectionHeight - viewport + viewport * 0.2);
+      const denom = Math.max(1, dimensions.length - 1);
+      const targetScrollY = startScrollY + (index / denom) * scrollRange;
+
+      window.scrollTo({ top: targetScrollY, behavior: 'smooth' });
+    },
+    [isMobile]
+  );
+
   return (
     <section
       ref={sectionRef}
@@ -154,7 +183,17 @@ export default function NidoDimensionsScrolly() {
                     cardRefs.current[index] = el;
                   }}
                   data-dim-index={index}
-                  className={`relative rounded bg-white shadow-lg transition-all ease-out will-change-transform max-md:p-5 md:p-6 ${
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Ir a la dimensión ${dimension.label}`}
+                  onClick={() => scrollToDimension(index)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      scrollToDimension(index);
+                    }
+                  }}
+                  className={`relative cursor-pointer rounded bg-white shadow-lg transition-all ease-out will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan max-md:p-5 md:p-6 ${
                     isMobile ? 'duration-500' : 'duration-300'
                   }`}
                   style={{

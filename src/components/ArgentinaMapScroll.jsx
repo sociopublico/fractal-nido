@@ -8,7 +8,7 @@ const ZOOM_SCROLL_PX = 500;
 const CARD_SCROLL_PX = 700;
 const TEXT_SCROLL_PX = 600;
 const SCALE_START = 3;
-const SCALE_END = 0.90;
+const SCALE_END = 0.85;
 
 const POINT_RADIUS = 4.5;
 const POINT_COLOR = '#18D4B4';
@@ -471,16 +471,16 @@ export default function ArgentinaMapScroll() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-x-clip overflow-y-visible"
+      className="relative overflow-x-clip overflow-y-visible -mt-1"
       style={{
         minHeight: `calc(${ZOOM_SCROLL_PX + CARD_SCROLL_PX + TEXT_SCROLL_PX}px + 50vh)`,
       }}
     >
       {isMobile ? (
         <>
-          <div className="sticky top-10 left-0 flex h-screen w-full flex-col overflow-x-clip overflow-y-visible bg-navy">
+          <div className="sticky -top-0 left-0 flex h-screen w-full flex-col overflow-x-clip overflow-y-visible bg-navy">
             <div className="z-20 w-full shrink-0 px-4 py-6">
-              <p className="text-md font-regular leading-snug text-white">{mapIntroText}</p>
+              <p className="text-sm font-regular leading-snug text-white">{mapIntroText}</p>
             </div>
 
             <div className="relative min-h-0 w-full flex-1 pb-12">
