@@ -15,10 +15,10 @@ export default function ScrollCard({
     : 'relative right-auto left-auto mx-auto min-h-0 w-full max-w-full pointer-events-auto';
 
   const outerPad = floating ? 'p-10 max-h-[85vh]' : 'p-4 md:p-10';
-  const innerPad = floating ? 'p-8' : 'p-5 md:p-8';
+  const innerPad = floating ? 'p-8' : 'p-4 md:p-8';
   const titleClass = floating
     ? 'mb-2 text-4xl font-medium leading-tightest text-black'
-    : 'mb-2 text-2xl font-medium leading-tighter text-black md:text-4xl';
+    : 'mb-2 text-3xl font-medium leading-tighter text-black md:text-4xl';
   const bodyClass = floating
     ? 'mt-12 text-xl font-medium leading-snug text-gray'
     : 'mt-6 text-base font-medium leading-snug text-gray md:mt-12 md:text-xl';

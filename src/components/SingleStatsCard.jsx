@@ -14,17 +14,18 @@ function Clock({ size }) {
 
 export default function SingleStatsCard({ children, color = 'menorIngreso', texto, numero, total, className = '', style = {} }) {
   return (
+    <div className="md:p-0 px-4">
     <div
       className={`bg-white shadow-xl overflow-hidden text-black ${className}`}
       style={style}
     >
-      <div className="p-8">
+      <div className="md:p-8 p-4">
         {children}
       </div>
       <div className='bg-mayorIngreso p-6 text-white relative top-1'>
         <img src={withBase('arrow.png')} alt="" className="w-6 h-6 mb-4 rotate-180" />
 
-        <p className="text-3xl font-bold">+ de 2hs </p>
+        <p className="text-3xl font-medium md:font-bold">+ de 2 horas </p>
 
         <div className='flex items-bottom align-bottom justify-left mt-4'>
 
@@ -38,6 +39,7 @@ export default function SingleStatsCard({ children, color = 'menorIngreso', text
         </div>
 
       </div>
+    </div>
     </div>
   );
 }

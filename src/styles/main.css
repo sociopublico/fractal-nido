@@ -5,8 +5,30 @@
 @tailwind components;
 @tailwind utilities;
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+#mi-app-root {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
 /* Alcance de estilos para no afectar el resto de WordPress */
 .mi-app {
   font-family: 'Satoshi', sans-serif;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   @apply text-navy antialiased;
 }

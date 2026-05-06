@@ -330,7 +330,8 @@ export default function MapAccessibilitySection() {
   return (
     <>
       <div className="relative w-full h-[70vh] min-h-[420px] mt-12">
-        <div className="absolute top-4 left-1/2 z-10 -translate-x-1/2 bg-white shadow-md rounded-full p-1 flex gap-1">
+        <div className="absolute top-4 left-1/2 z-10 flex max-w-[calc(100%-1rem)] 
+        -translate-x-1/2  justify-center gap-1 rounded-full bg-white p-1 shadow-md">
           {metricOptions.map((option) => {
             const isActive = selectedMetric === option.id;
             return (
@@ -338,7 +339,7 @@ export default function MapAccessibilitySection() {
                 key={option.id}
                 type="button"
                 onClick={() => setSelectedMetric(option.id)}
-                className={`px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-navy text-white' : 'bg-white text-navy hover:bg-navy/10'}`}
+                className={`px-4 py-2 md:text-sm text-xs rounded-full transition-colors ${isActive ? 'bg-navy text-white' : 'bg-white text-navy hover:bg-navy/10'}`}
               >
                 {option.label}
               </button>
@@ -371,16 +372,16 @@ export default function MapAccessibilitySection() {
       </div>
 
       <div className="w-full bg-[#0030870D] py-4 px-6 md:px-10">
-        <div className="max-w-6xl mx-auto flex flex-wrap items-center gap-6 text-sm text-black justify-center">
-          <span className="inline-flex items-center gap-2">
+        <div className="md:max-w-6xl mx-auto flex flex-wrap items-center md:gap-6 gap-3 md:text-sm text-xs text-black justify-center">
+          <span className="inline-flex items-center md:gap-2 gap-1">
             <span className="w-3 h-3 rounded-full bg-[#09A9E7]" />
             Centro de salud
           </span>
-          <span className="inline-flex items-center gap-2">
+          <span className="inline-flex items-center md:gap-2 gap-1">
             <span className="w-3 h-3 rounded-full bg-[#FD4E51]" />
             Jardín de infantes
           </span>
-          <span className="inline-flex items-center gap-2">
+          <span className="inline-flex items-center md:gap-2 gap-1">
             <span className="w-3 h-3 rounded-full bg-[#0FBC02]" />
             Espacio verde
           </span>

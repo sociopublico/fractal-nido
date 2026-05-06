@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const CHART_DATA = [
   { label: 'Espacios verdes', value: 15, color: '#0FBC02' },
@@ -12,6 +13,7 @@ export default function DimensionsDonutChart() {
   const containerRef = useRef(null);
   const svgRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   useEffect(() => {
     const el = containerRef.current;
@@ -34,12 +36,12 @@ export default function DimensionsDonutChart() {
   useEffect(() => {
     if (!isVisible || !svgRef.current) return;
 
-    const width = 980;
-    const height = 560;
+    const width = isMobile ? 420 : 980;
+    const height = isMobile ? 720 : 560;
     const cx = width / 2;
-    const cy = height / 2 + 10;
-    const outerRadius = 145;
-    const innerRadius = 115;
+    const cy = isMobile ? height / 2 : height / 2 + 10;
+    const outerRadius = isMobile ? 174 : 145;
+    const innerRadius = isMobile ? 132 : 115;
     const midRadius = (innerRadius + outerRadius) / 2;
     const arcDuration = 650;
     const arcDelay = 500;
@@ -84,42 +86,107 @@ export default function DimensionsDonutChart() {
     const totalArcsAnimation = (CHART_DATA.length - 1) * arcDelay + arcDuration;
 
     const refsGroup = svg.append('g');
+    const mobileLabelSlots = {
+      'Educación': { x: width * 0.24, y: 88, anchor: 'middle' },
+      'Espacios verdes': { x: width * 0.76, y: 88, anchor: 'middle' },
+      'Contexto socioeconómico': { x: width * 0.24, y: height - 92, anchor: 'middle' },
+      Salud: { x: width * 0.76, y: height - 92, anchor: 'middle' },
+    };
+
+    /** Intersección del círculo del donut (midRadius) con la vertical x = lineX. */
+    const ringYAtX = (lineX, upperHalf) => {
+      const dx = lineX - cx;
+      const disc = midRadius * midRadius - dx * dx;
+      if (disc < 0) return cy;
+      const s = Math.sqrt(disc);
+      return upperHalf ? cy - s : cy + s;
+    };
+
     const referencePoints = arcsData.map((d) => {
       const angle = (d.startAngle + d.endAngle) / 2 - Math.PI / 2;
       const targetX = cx + Math.cos(angle) * midRadius;
       const targetY = cy + Math.sin(angle) * midRadius;
-      const isRight = targetX >= cx;
-      const labelX = isRight ? width - 150 : 150;
-      const anchor = isRight ? 'end' : 'start';
 
+      if (isMobile) {
+        const slot = mobileLabelSlots[d.data.label];
+        const labelX = slot?.x ?? cx;
+        const labelY = slot?.y ?? cy;
+        const slotIsTop = labelY < cy;
+        const ringY = ringYAtX(labelX, slotIsTop);
+        const mainY = labelY + (slotIsTop ? -8 : 8);
+        const valueY = labelY + (slotIsTop ? 28 : 36);
+        /** Línea solo vertical: x fijo; arriba empieza debajo del %. */
+        let lineY1;
+        let lineY2;
+        if (slotIsTop) {
+          const belowValueY = valueY + 26;
+          lineY1 = Math.min(belowValueY, ringY);
+          lineY2 = Math.max(belowValueY, ringY);
+        } else {
+          const aboveBlockY = labelY - 10;
+          lineY1 = Math.min(ringY, aboveBlockY);
+          lineY2 = Math.max(ringY, aboveBlockY);
+        }
+        return {
+          ...d,
+          targetX: labelX,
+          targetY: ringY,
+          labelX,
+          labelY,
+          anchor: slot?.anchor ?? 'middle',
+          isTop: slotIsTop,
+          mainY,
+          valueY,
+          lineY1,
+          lineY2,
+        };
+      }
+
+      const isRight = targetX >= cx;
       return {
         ...d,
         targetX,
         targetY,
-        isRight,
-        labelX,
-        anchor,
+        labelX: isRight ? width - 150 : 150,
+        labelY: targetY,
+        anchor: isRight ? 'end' : 'start',
+        isTop: targetY < cy,
       };
     });
 
-    refsGroup
+    const lineSelection = refsGroup
       .selectAll('line')
       .data(referencePoints)
       .enter()
       .append('line')
-      .attr('x1', (d) => d.labelX)
-      .attr('x2', (d) => d.labelX)
-      .attr('y1', (d) => d.targetY)
-      .attr('y2', (d) => d.targetY)
       .attr('stroke', lineColor)
       .attr('stroke-width', 2)
-      .attr('opacity', 0)
-      .transition()
-      .delay(totalArcsAnimation + 120)
-      .duration(420)
-      .ease(d3.easeCubicOut)
-      .attr('opacity', 1)
-      .attr('x2', (d) => d.targetX);
+      .attr('opacity', 0);
+
+    if (isMobile) {
+      lineSelection
+        .attr('x1', (d) => d.labelX)
+        .attr('x2', (d) => d.labelX)
+        .attr('y1', (d) => d.lineY1)
+        .attr('y2', (d) => d.lineY2)
+        .transition()
+        .delay(totalArcsAnimation + 120)
+        .duration(420)
+        .ease(d3.easeCubicOut)
+        .attr('opacity', 1);
+    } else {
+      lineSelection
+        .attr('x1', (d) => d.labelX)
+        .attr('x2', (d) => d.labelX)
+        .attr('y1', (d) => d.labelY)
+        .attr('y2', (d) => d.targetY)
+        .transition()
+        .delay(totalArcsAnimation + 120)
+        .duration(420)
+        .ease(d3.easeCubicOut)
+        .attr('opacity', 1)
+        .attr('x2', (d) => d.targetX);
+    }
 
     refsGroup
       .selectAll('circle')
@@ -143,11 +210,12 @@ export default function DimensionsDonutChart() {
       .append('text')
       .attr('class', 'ref-label-main')
       .attr('x', (d) => d.labelX)
-      .attr('y', (d) => d.targetY - 65)
+      .attr('y', (d) => (isMobile ? d.mainY : d.labelY - 65))
       .attr('text-anchor', (d) => d.anchor)
       .attr('fill', '#666666')
-      .attr('font-size', 15)
+      .attr('font-size', isMobile ? 14 : 15)
       .attr('font-weight', 300)
+      .attr('dominant-baseline', (d) => (isMobile ? (d.isTop ? 'auto' : 'hanging') : 'auto'))
       .attr('opacity', 0)
       .text((d) => d.data.label)
       .transition()
@@ -162,11 +230,12 @@ export default function DimensionsDonutChart() {
       .append('text')
       .attr('class', 'ref-label-value')
       .attr('x', (d) => d.labelX)
-      .attr('y', (d) => d.targetY - 20)
+      .attr('y', (d) => (isMobile ? d.valueY : d.labelY - 20))
       .attr('text-anchor', (d) => d.anchor)
       .attr('fill', '#003087')
-      .attr('font-size', 36)
+      .attr('font-size', isMobile ? 30 : 36)
       .attr('font-weight', 700)
+      .attr('dominant-baseline', (d) => (isMobile ? (d.isTop ? 'auto' : 'hanging') : 'auto'))
       .attr('opacity', 0)
       .text((d) => `${d.data.value}%`)
       .transition()
@@ -210,12 +279,12 @@ export default function DimensionsDonutChart() {
           .transition().duration(200)
           .attr('opacity', 1);
       });
-  }, [isVisible]);
+  }, [isVisible, isMobile]);
 
   return (
     <div ref={containerRef} className="w-full mt-16">
-      <div className="-mt-12 w-full">
-        <svg ref={svgRef} className="w-full h-auto max-h-[580px]" />
+      <div className={`${isMobile ? 'mt-0' : '-mt-12'} w-full`}>
+        <svg ref={svgRef} className={`w-full h-auto ${isMobile ? 'max-h-[760px]' : 'max-h-[580px]'}`} />
       </div>
     </div>
   );

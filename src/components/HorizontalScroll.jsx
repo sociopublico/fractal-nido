@@ -14,6 +14,8 @@ const SLIDE_SCROLL_PX = 2500;
 const SCROLLY_IMAGE_ORDER = [0, 10, 11, 12, 13, 14, 15, 16, 17, 6, 7, 8, 9, 1, 2, 3, 4, 5];
 const SCROLLY_STEPS = SCROLLY_IMAGE_ORDER.map((_, i) => SCROLLY_IMAGE_ORDER.slice(0, i + 1));
 const SCROLLY_PHASE_END_PX = SCROLLY_IMAGE_ORDER.length * SCROLL_STEP_PX;
+const MOBILE_SCROLL_STEP_FACTOR = 0.5;
+const MOBILE_SCROLL_START_OFFSET = 0.5;
 
 const cardStyle = { position: 'relative', top: 'auto', transform: 'none' };
 
@@ -36,11 +38,14 @@ export default function HorizontalScroll() {
     const onScroll = () => {
       const rect = section.getBoundingClientRect();
       const sectionTop = rect.top + window.scrollY;
-      const progress = Math.max(0, window.scrollY - sectionTop + window.innerHeight * 0.3);
+      const scrollStartOffset = isMobile ? MOBILE_SCROLL_START_OFFSET : 0.3;
+      const phaseEndPx = isMobile ? SCROLLY_PHASE_END_PX * MOBILE_SCROLL_STEP_FACTOR : SCROLLY_PHASE_END_PX;
+      const stepPx = isMobile ? SCROLL_STEP_PX * MOBILE_SCROLL_STEP_FACTOR : SCROLL_STEP_PX;
+      const progress = Math.max(0, window.scrollY - sectionTop + window.innerHeight * scrollStartOffset);
 
-      if (progress < SCROLLY_PHASE_END_PX) {
-        setScrollyStep(Math.floor(progress / SCROLL_STEP_PX));
-        setPatternProgress(progress / SCROLLY_PHASE_END_PX);
+      if (progress < phaseEndPx) {
+        setScrollyStep(Math.floor(progress / stepPx));
+        setPatternProgress(progress / phaseEndPx);
         setSlideX(0);
         return;
       }
@@ -53,7 +58,7 @@ export default function HorizontalScroll() {
         return;
       }
 
-      const sp = Math.min(1, (progress - SCROLLY_PHASE_END_PX) / SLIDE_SCROLL_PX);
+      const sp = Math.min(1, (progress - phaseEndPx) / SLIDE_SCROLL_PX);
       const strip = stripRef.current;
       const maxScrollX = strip ? strip.scrollWidth - window.innerWidth : 0;
       setSlideX(-sp * maxScrollX);
@@ -68,7 +73,8 @@ export default function HorizontalScroll() {
     };
   }, [isMobile]);
 
-  const mobileMinHeight = `calc(${SCROLLY_PHASE_END_PX}px + 70vh)`;
+  const mobilePhaseEndPx = SCROLLY_PHASE_END_PX * MOBILE_SCROLL_STEP_FACTOR;
+  const mobileMinHeight = `calc(${mobilePhaseEndPx}px + 70vh)`;
 
   if (isMobile) {
     return (
@@ -77,23 +83,25 @@ export default function HorizontalScroll() {
         className="relative bg-navy overflow-x-hidden"
         style={{ minHeight: mobileMinHeight }}
       >
-        <div className="sticky top-0 left-0 z-10 flex min-h-[62vh] w-full flex-col justify-center overflow-x-hidden bg-navy py-4">
-          <div className="flex min-h-[48vh] flex-1 w-full items-center justify-center px-3">
-            <div className="relative aspect-[3/4] w-full max-h-[58vh]">
+        <div className="sticky top-0 left-0 z-10 flex h-[200px] md:h-screen w-full 
+        flex-col justify-center overflow-hidden bg-navy py-4 ">
+          <div className="flex min-h-[48vh] w-full flex-1 items-center justify-center px-2">
+            <div className="relative h-[62vh] w-[114%] max-h-[62vh] max-w-none">
               <ScrollyStack
                 folder="scrolly1"
                 totalImages={18}
                 steps={SCROLLY_STEPS}
                 currentStep={scrollyStep}
                 patternProgress={patternProgress}
-                className="h-full w-full"
+                className="h-full w-full scale-[1.25] md:scale-[1.12]"
                 compactPattern
               />
             </div>
           </div>
         </div>
 
-        <div className="relative z-20 flex w-full max-w-full flex-col gap-10 overflow-x-hidden bg-navy px-4 pb-16 pt-4">
+        <div className="relative z-20 flex w-full max-w-full flex-col gap-10 overflow-x-hidden 
+        bg-navy px-0 md:px-4 pb-16 pt-8 md:pt-4">
           <ScrollCard
             floating={false}
             title="Pedro nació en la periferia de una gran ciudad."
@@ -126,7 +134,7 @@ export default function HorizontalScroll() {
             className="w-full min-w-0 max-w-full"
             style={{ zIndex: 20 }}
           >
-            <p className="text-base text-gray-700 leading-relaxed">
+            <p className="text-base text-gray-700 leading-tight md:leading-relaxed">
               En las grandes ciudades, <span className="font-bold text-cyan">5 de cada 25 niños y niñas</span> de
               hogares de menor nivel socioeconómico no tiene acceso a espacios verdes, mientras que esta situación
               afecta solo a <span className="font-bold">1 de cada 25 niños y niñas</span> de hogares con mayores
@@ -171,12 +179,14 @@ export default function HorizontalScroll() {
             ]}
           />
 
-          <div className="w-full max-w-full bg-[#609B3E] p-3 shadow-xl">
-            <div className="flex flex-col items-center justify-center gap-4 border-4 border-white p-4 text-center sm:flex-row sm:text-left">
+          <div className="w-full max-w-full bg-[#609B3E] p-2 md:p-3 shadow-xl">
+            <div className="flex items-center justify-between gap-2 md:gap-4 border-4 border-white 
+            p-2 px-4 md:p-4 flex-row text-left">
               <svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M10 0L20 16.719H14.5V24L5.5 24V16.719H0L10 0Z" fill="white" />
               </svg>
-              <p className="text-base font-bold uppercase leading-tight text-white">hasta el hospital más cercano</p>
+              <p className="block md:hidden text-base font-bold uppercase leading-tight text-white">hasta el hospital<br/> más cercano</p>
+              <p className="hidden md:block text-base font-bold uppercase leading-tight text-white">hasta el hospital más cercano</p>
               <p className="text-2xl font-bold leading-tight text-white">2h 10m</p>
             </div>
           </div>
@@ -199,7 +209,7 @@ export default function HorizontalScroll() {
             texto="no accede a servicios de salud cercanos"
             className="w-full min-w-0 max-w-full"
           >
-            <p className="text-base text-gray-700 leading-relaxed">
+            <p className="text-base md:text-lg text-gray-700 leading-relaxed">
               <span className="font-bold text-cyan">En 240 localidades del país</span> hay que viajar{' '}
               <span className="font-bold">más de 2 horas en auto</span> para llegar al hospital público más cercano.
               <br />

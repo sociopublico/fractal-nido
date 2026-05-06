@@ -14,10 +14,10 @@ export default function LastSection() {
 
       
     <div className="bg-[#003087] pt-12">
-      <div className="max-w-4xl mx-auto px-6 md:px-10 space-y-12">
-        <p className=" text-lg font-light leading-tight mt-12 mb-12 text-white">Las desigualdades territoriales no son inevitables.</p>
-        <h2 className=" text-5xl font-light leading-tightest mt-12 text-cyan">Podemos orientar políticas y recursos para transformar el mapa.</h2>
-        <p className=" text-lg font-light leading-tight mt-12 text-white pb-24">El índice NIDO muestra con información precisa en dónde están las brechas y señala las zonas donde una intervención puede hacer una gran diferencia.</p>
+      <div className="max-w-4xl mx-auto px-6 md:px-10 md:space-y-12">
+        <p className=" text-lg font-light leading-tight mt-0 md:mt-12 md:mb-12 mb-6 text-white">Las desigualdades territoriales no son inevitables.</p>
+        <h2 className="md:text-5xl text-3xl font-light leading-tightest text-cyan">Podemos orientar políticas y recursos para transformar el mapa.</h2>
+        <p className=" text-lg font-light leading-tight md:mt-12 mt-8 text-white pb-24">El índice NIDO muestra con información precisa en dónde están las brechas y señala las zonas donde una intervención puede hacer una gran diferencia.</p>
       </div>
     </div>
     <div className="bg-white pt-12 pb-20">

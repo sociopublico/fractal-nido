@@ -455,7 +455,7 @@ export default function ArgentinaMapScroll() {
 
   const scrollCardContent = (
     <>
-      <span className="font-medium" style={{ color: '#00A1DE' }}>
+      <span className="font-medium leading-tight text-lg" style={{ color: '#00A1DE' }}>
         Algunos niños y niñas nacen en entornos con menos oportunidades que otros.
       </span>
     </>
@@ -480,7 +480,7 @@ export default function ArgentinaMapScroll() {
         <>
           <div className="sticky top-10 left-0 flex h-screen w-full flex-col overflow-x-clip overflow-y-visible bg-navy">
             <div className="z-20 w-full shrink-0 px-4 py-6">
-              <p className="text-xs font-regular leading-snug text-white">{mapIntroText}</p>
+              <p className="text-md font-regular leading-snug text-white">{mapIntroText}</p>
             </div>
 
             <div className="relative min-h-0 w-full flex-1 pb-12">
@@ -494,7 +494,7 @@ export default function ArgentinaMapScroll() {
             </div>
           </div>
 
-          <div className="bg-navy px-4 pb-10 pt-6 mt-[100vh]">
+          <div className="bg-navy mt-[100vh]">
             <ScrollCard floating={false} title={scrollCardTitle} className="mx-auto w-full max-w-lg">
               {scrollCardContent}
             </ScrollCard>
