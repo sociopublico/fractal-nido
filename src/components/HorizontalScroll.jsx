@@ -117,11 +117,31 @@ export default function HorizontalScroll() {
             className="h-[220px] sm:h-[260px]"
             layers={[
               { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
-              { src: withBase('scrolly1/22.png'), visible: true, speed: 0, initialX: 0 },
-              { src: withBase('scrolly1/21.png'), visible: true, speed: 0, initialX: 0 },
-              { src: withBase('scrolly1/19.png'), visible: true, speed: 0, initialX: 0 },
-              { src: withBase('scrolly1/20.png'), visible: true, speed: 0, initialX: 0 },
-              { src: withBase('scrolly1/23.png'), visible: true, speed: 0, initialX: 0 },
+              {
+                src: withBase('scrolly1/22.png'),
+                visible: true,
+                speed: 0,
+                initialX: 180,
+                scale: isMobile ? 2 : 1,
+              },
+              {
+                src: withBase('scrolly1/21.png'),
+                visible: true,
+                speed: 0,
+                initialX: 0,
+                scale: isMobile ? 2 : 1,
+              },
+              {
+                src: withBase('scrolly1/19.png'),
+                visible: true,
+                speed: 0,
+                initialX: 250,
+                scale: isMobile ? 2 : 1,
+              },
+              { src: withBase('scrolly1/20.png'), visible: true, speed: 0, initialX: 0, },
+              { src: withBase('scrolly1/23.png'), visible: true, speed: 0, initialX: 0,
+                scale: isMobile ? 2 : 1,
+               },
             ]}
           />
 
@@ -154,9 +174,9 @@ export default function HorizontalScroll() {
             className="h-[200px]"
             layers={[
               { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
-              { src: withBase('scrolly1/21.png'), visible: true, speed: 0, initialX: 0 },
-              { src: withBase('scrolly1/26.png'), visible: true, speed: 0, initialX: 0 },
-              { src: withBase('scrolly1/25.png'), visible: true, speed: 0, initialX: 0 },
+              { src: withBase('scrolly1/21.png'), visible: true, speed: 0, initialX: 0, scale: isMobile ? 2.5 : 1 },
+              { src: withBase('scrolly1/26.png'), visible: true, speed: 0, initialX: -120, scale: isMobile ? 2.5 : 1 },
+              { src: withBase('scrolly1/25.png'), visible: true, speed: 0, initialX: -60 },
             ]}
           />
 
@@ -174,8 +194,8 @@ export default function HorizontalScroll() {
             className="h-[200px]"
             layers={[
               { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
-              { src: withBase('scrolly1/21.png'), visible: true, speed: 0, initialX: 0 },
-              { src: withBase('scrolly1/24.png'), visible: true, speed: 0, initialX: 0 },
+              { src: withBase('scrolly1/21.png'), visible: true, speed: 0, initialX: 60, scale: isMobile ? 2.5 : 1 },
+              { src: withBase('scrolly1/24.png'), visible: true, speed: 0, initialX: -200, scale: isMobile ? 2.5 : 1 },
             ]}
           />
 
@@ -194,11 +214,11 @@ export default function HorizontalScroll() {
           <MobileParallax
             className="h-[220px]"
             layers={[
-              { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
-              { src: withBase('scrolly1/14.png'), visible: true, speed: 0 },
-              { src: withBase('scrolly1/08.png'), visible: true, speed: 0, initialX: 0 },
-              { src: withBase('scrolly1/12.png'), visible: true, speed: 0, initialX: 0 },
-              { src: withBase('scrolly1/17.png'), visible: true, speed: 0, initialX: 0 },
+              { src: withBase('scrolly1/0.png'), visible: true, speed: 0, scale: isMobile ? 2 : 1 },
+              { src: withBase('scrolly1/14.png'), visible: true, speed: 0, initialX: 100, scale: isMobile ? 2 : 1 },
+              { src: withBase('scrolly1/08.png'), visible: true, speed: 0, initialX: -180, scale: isMobile ? 2 : 1 },
+              { src: withBase('scrolly1/12.png'), visible: true, speed: 0, initialX: 60, scale: isMobile ? 2 : 1 },
+              { src: withBase('scrolly1/17.png'), visible: true, speed: 0, initialX: -240, scale: isMobile ? 2 : 1 },
             ]}
           />
 
@@ -221,8 +241,14 @@ export default function HorizontalScroll() {
           <MobileParallax
             className="h-[240px]"
             layers={[
-              { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
-              { src: withBase('scrolly1/24.png'), visible: true, speed: 0, initialX: 0, scale: 1.2 },
+              { src: withBase('scrolly1/0.png'), visible: true, speed: 0, scale: isMobile ? 2.5 : 1 },
+              {
+                src: withBase('scrolly1/24.png'),
+                visible: true,
+                speed: 0,
+                initialX: -350,
+                scale: isMobile ? 2.25 : 1.65,
+              },
             ]}
           />
 
@@ -285,9 +311,27 @@ export default function HorizontalScroll() {
               className="h-[80vh] w-[70vw]"
               layers={[
                 { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
-                { src: withBase('scrolly1/22.png'), visible: true, speed: 0.1, initialX: 200 },
-                { src: withBase('scrolly1/21.png'), visible: true, speed: 0.05, initialX: 600 },
-                { src: withBase('scrolly1/19.png'), visible: true, speed: 0.1, initialX: 500 },
+                {
+                  src: withBase('scrolly1/22.png'),
+                  visible: true,
+                  speed: 0.1,
+                  initialX: 200,
+                  scale: isMobile ? 2 : 1,
+                },
+                {
+                  src: withBase('scrolly1/21.png'),
+                  visible: true,
+                  speed: 0.05,
+                  initialX: 600,
+                  scale: isMobile ? 2 : 1,
+                },
+                {
+                  src: withBase('scrolly1/19.png'),
+                  visible: true,
+                  speed: 0.1,
+                  initialX: 500,
+                  scale: isMobile ? 2 : 1,
+                },
                 { src: withBase('scrolly1/20.png'), visible: true, speed: 0.1, initialX: 50 },
                 { src: withBase('scrolly1/23.png'), visible: true, speed: 0.25, initialX: 250 },
               ]}
@@ -387,7 +431,13 @@ export default function HorizontalScroll() {
               className="mr-[120px] h-[80vh] w-[70vw] -ml-[400px]"
               layers={[
                 { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
-                { src: withBase('scrolly1/24.png'), visible: true, speed: 0.02, initialX: 100, scale: 1.65 },
+                {
+                  src: withBase('scrolly1/24.png'),
+                  visible: true,
+                  speed: 0.02,
+                  initialX: 100,
+                  scale: isMobile ? 2 : 1.65,
+                },
               ]}
             />
             <ScrollCard
