@@ -26,7 +26,7 @@ export default function PostHorizontalSection() {
           <div className="max-w-3xl mx-auto md:px-10 pt-4 md:pt-12">
             <p className="text-center px-16 text-lg font-light leading-tight mt-12 text-black">Las historias de Pedro, Lucila y Amanda son ficticias, pero las condiciones que los rodean son reales.</p>
             <h2 className="text-center md:px-0 px-6 text-3xl md:text-4xl font-medium leading-tightest mt-12 text-black">Y definen sus posibilidades desde el primer día de vida.</h2>
-            <p className="text-center px-8 md:px-16 text-sm md:text-lg font-light leading-tight mt-12 text-black">EsteEste mapa muestra cuántos minutos le toma llegar caminando, a los habitantes de la localidad más poblada de cada provincia, al servicio más cercano, y permite comparar las diferencias de acceso entre niveles de ingresos.</p>
+            <p className="text-center px-8 md:px-16 text-sm md:text-lg font-light leading-tight mt-12 text-black">Este mapa muestra cuántos minutos le toma llegar caminando, a los habitantes de la localidad más poblada de cada provincia, al servicio más cercano, y permite comparar las diferencias de acceso entre niveles de ingresos.</p>
           </div>
         <MapAccessibilitySection />
       </div>

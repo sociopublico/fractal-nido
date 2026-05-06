@@ -16,6 +16,10 @@ const SCROLLY_STEPS = SCROLLY_IMAGE_ORDER.map((_, i) => SCROLLY_IMAGE_ORDER.slic
 const SCROLLY_PHASE_END_PX = SCROLLY_IMAGE_ORDER.length * SCROLL_STEP_PX;
 const MOBILE_SCROLL_STEP_FACTOR = 0.5;
 const MOBILE_SCROLL_START_OFFSET = 0.5;
+/** Mobile: 1.5 = misma animación en ~2/3 del scroll (50% más rápido que el ritmo anterior). */
+const MOBILE_SCROLLY_SPEED_MULTIPLIER = 1.8;
+/** Mobile: cuando el tope de la sección está en este % del alto del viewport (desde arriba), todas las capas ya visibles. */
+const MOBILE_SCROLLY_COMPLETE_VIEWPORT_TOP_FRAC = 0.25;
 
 const cardStyle = { position: 'relative', top: 'auto', transform: 'none' };
 
@@ -38,10 +42,25 @@ export default function HorizontalScroll() {
     const onScroll = () => {
       const rect = section.getBoundingClientRect();
       const sectionTop = rect.top + window.scrollY;
+      const vh = window.innerHeight;
       const scrollStartOffset = isMobile ? MOBILE_SCROLL_START_OFFSET : 0.3;
-      const phaseEndPx = isMobile ? SCROLLY_PHASE_END_PX * MOBILE_SCROLL_STEP_FACTOR : SCROLLY_PHASE_END_PX;
-      const stepPx = isMobile ? SCROLL_STEP_PX * MOBILE_SCROLL_STEP_FACTOR : SCROLL_STEP_PX;
-      const progress = Math.max(0, window.scrollY - sectionTop + window.innerHeight * scrollStartOffset);
+      const phaseEndPx = isMobile
+        ? (SCROLLY_PHASE_END_PX * MOBILE_SCROLL_STEP_FACTOR) / MOBILE_SCROLLY_SPEED_MULTIPLIER
+        : SCROLLY_PHASE_END_PX;
+      const stepPx = isMobile
+        ? (SCROLL_STEP_PX * MOBILE_SCROLL_STEP_FACTOR) / MOBILE_SCROLLY_SPEED_MULTIPLIER
+        : SCROLL_STEP_PX;
+      const progress = Math.max(0, window.scrollY - sectionTop + vh * scrollStartOffset);
+
+      if (
+        isMobile &&
+        rect.top <= vh * MOBILE_SCROLLY_COMPLETE_VIEWPORT_TOP_FRAC
+      ) {
+        setScrollyStep(SCROLLY_STEPS.length - 1);
+        setPatternProgress(1);
+        setSlideX(0);
+        return;
+      }
 
       if (progress < phaseEndPx) {
         setScrollyStep(Math.floor(progress / stepPx));
@@ -73,7 +92,8 @@ export default function HorizontalScroll() {
     };
   }, [isMobile]);
 
-  const mobilePhaseEndPx = SCROLLY_PHASE_END_PX * MOBILE_SCROLL_STEP_FACTOR;
+  const mobilePhaseEndPx =
+    (SCROLLY_PHASE_END_PX * MOBILE_SCROLL_STEP_FACTOR) / MOBILE_SCROLLY_SPEED_MULTIPLIER;
   const mobileMinHeight = `calc(${mobilePhaseEndPx}px + 70vh)`;
 
   if (isMobile) {

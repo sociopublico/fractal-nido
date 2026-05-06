@@ -7,6 +7,9 @@ import { useMediaQuery } from '../hooks/useMediaQuery';
 const ZOOM_SCROLL_PX = 500;
 const CARD_SCROLL_PX = 700;
 const TEXT_SCROLL_PX = 600;
+
+/** Mobile: solo fase de zoom del mapa; el resto del scroll es flujo normal (card fuera de esta sección). */
+const MOBILE_MAP_SECTION_MIN_HEIGHT = `calc(${ZOOM_SCROLL_PX}px + 100vh)`;
 const SCALE_START = 3;
 const SCALE_END = 0.85;
 
@@ -163,8 +166,19 @@ export default function ArgentinaMapScroll() {
     const onScroll = () => {
       const rect = section.getBoundingClientRect();
       const sectionTop = rect.top + window.scrollY;
-      const scrollY = window.scrollY;
-      const progress = Math.max(0, scrollY - sectionTop + window.innerHeight * 0.2);
+      const progress = Math.max(0, window.scrollY - sectionTop + window.innerHeight * 0.2);
+
+      if (isMobile) {
+        if (progress < ZOOM_SCROLL_PX) {
+          const t = progress / ZOOM_SCROLL_PX;
+          setScale(SCALE_START - t * (SCALE_START - SCALE_END));
+        } else {
+          setScale(SCALE_END);
+        }
+        setStep2Progress(0);
+        setStep3Progress(0);
+        return;
+      }
 
       if (progress < ZOOM_SCROLL_PX) {
         const t = progress / ZOOM_SCROLL_PX;
@@ -183,7 +197,7 @@ export default function ArgentinaMapScroll() {
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [isMobile]);
 
   // Redibujar mapa: path + puntos. NO depende de `scale` para que las animaciones CSS persistan.
   useEffect(() => {
@@ -468,16 +482,18 @@ export default function ArgentinaMapScroll() {
     </>
   );
 
+  const desktopSectionMinHeight = `calc(${ZOOM_SCROLL_PX + CARD_SCROLL_PX + TEXT_SCROLL_PX}px + 50vh)`;
+
   return (
-    <section
-      ref={sectionRef}
-      className="relative overflow-x-clip overflow-y-visible -mt-1"
-      style={{
-        minHeight: `calc(${ZOOM_SCROLL_PX + CARD_SCROLL_PX + TEXT_SCROLL_PX}px + 50vh)`,
-      }}
-    >
-      {isMobile ? (
-        <>
+    <>
+      <section
+        ref={sectionRef}
+        className="relative overflow-x-clip overflow-y-visible -mt-1"
+        style={{
+          minHeight: isMobile ? MOBILE_MAP_SECTION_MIN_HEIGHT : desktopSectionMinHeight,
+        }}
+      >
+        {isMobile ? (
           <div className="sticky -top-0 left-0 flex h-screen w-full flex-col overflow-x-clip overflow-y-visible bg-navy">
             <div className="z-20 w-full shrink-0 px-4 py-6">
               <p className="text-sm font-regular leading-snug text-white">{mapIntroText}</p>
@@ -493,14 +509,7 @@ export default function ArgentinaMapScroll() {
               {mapTooltip}
             </div>
           </div>
-
-          <div className="bg-navy mt-[100vh]">
-            <ScrollCard floating={false} title={scrollCardTitle} className="mx-auto w-full max-w-lg">
-              {scrollCardContent}
-            </ScrollCard>
-          </div>
-        </>
-      ) : (
+        ) : (
         <div className="sticky top-0 left-0 flex h-screen w-full items-center justify-center overflow-x-clip overflow-y-visible bg-navy">
           <svg
             ref={svgRef}
@@ -527,7 +536,16 @@ export default function ArgentinaMapScroll() {
             {scrollCardContent}
           </ScrollCard>
         </div>
+        )}
+      </section>
+
+      {isMobile && (
+        <div className="bg-navy px-4 pb-16 pt-8">
+          <ScrollCard floating={false} title={scrollCardTitle} className="mx-auto w-full max-w-lg">
+            {scrollCardContent}
+          </ScrollCard>
+        </div>
       )}
-    </section>
+    </>
   );
 }
