@@ -20,11 +20,51 @@ const MOBILE_SCROLL_START_OFFSET = 0.5;
 const MOBILE_SCROLLY_SPEED_MULTIPLIER = 1.8;
 /** Mobile: cuando el tope de la sección está en este % del alto del viewport (desde arriba), todas las capas ya visibles. */
 const MOBILE_SCROLLY_COMPLETE_VIEWPORT_TOP_FRAC = 0.25;
+/** Mobile ParallaxStack: rango de slideX (px) mientras el bloque cruza el viewport; negativo como el strip desktop. */
+const MOBILE_PARALLAX_SLIDE_RANGE_PX = 400;
 
 const cardStyle = { position: 'relative', top: 'auto', transform: 'none' };
 
 function MobileParallax({ layers, className = '' }) {
-  return <ParallaxStack slideX={0} className={`relative w-full max-w-full mx-auto ${className}`} layers={layers} />;
+  const wrapRef = useRef(null);
+  const [slideX, setSlideX] = useState(0);
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+
+    const tick = () => {
+      rafRef.current = null;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const denom = Math.max(1, vh + r.height);
+      const t = Math.min(1, Math.max(0, (vh - r.top) / denom));
+      setSlideX(-t * MOBILE_PARALLAX_SLIDE_RANGE_PX);
+    };
+
+    const schedule = () => {
+      if (rafRef.current != null) return;
+      rafRef.current = window.requestAnimationFrame(tick);
+    };
+
+    tick();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    return () => {
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      if (rafRef.current != null) window.cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  return (
+    <div ref={wrapRef} className={`relative w-full max-w-full mx-auto ${className}`}>
+      <div className="absolute inset-0">
+        <ParallaxStack slideX={slideX} className="h-full w-full" layers={layers} />
+      </div>
+    </div>
+  );
 }
 
 export default function HorizontalScroll() {
@@ -159,7 +199,7 @@ export default function HorizontalScroll() {
                 scale: isMobile ? 2 : 1,
               },
               { src: withBase('scrolly1/20.png'), visible: true, speed: 0, initialX: 0, },
-              { src: withBase('scrolly1/23.png'), visible: true, speed: 0, initialX: 0,
+              { src: withBase('scrolly1/23.png'), visible: true, speed: -0.2, initialX: 0,
                 scale: isMobile ? 2 : 1,
                },
             ]}
@@ -196,7 +236,12 @@ export default function HorizontalScroll() {
               { src: withBase('scrolly1/0.png'), visible: true, speed: 0 },
               { src: withBase('scrolly1/21.png'), visible: true, speed: 0, initialX: 0, scale: isMobile ? 2.5 : 1 },
               { src: withBase('scrolly1/26.png'), visible: true, speed: 0, initialX: -120, scale: isMobile ? 2.5 : 1 },
-              { src: withBase('scrolly1/25.png'), visible: true, speed: 0, initialX: -60 },
+              {
+                src: withBase('scrolly1/25.png'),
+                visible: true,
+                speed: -0.40,
+                initialX: -120,
+              },
             ]}
           />
 
@@ -238,7 +283,13 @@ export default function HorizontalScroll() {
               { src: withBase('scrolly1/14.png'), visible: true, speed: 0, initialX: 100, scale: isMobile ? 2 : 1 },
               { src: withBase('scrolly1/08.png'), visible: true, speed: 0, initialX: -180, scale: isMobile ? 2 : 1 },
               { src: withBase('scrolly1/12.png'), visible: true, speed: 0, initialX: 60, scale: isMobile ? 2 : 1 },
-              { src: withBase('scrolly1/17.png'), visible: true, speed: 0, initialX: -240, scale: isMobile ? 2 : 1 },
+              {
+                src: withBase('scrolly1/17.png'),
+                visible: true,
+                speed: 0.4,
+                initialX: -120,
+                scale: isMobile ? 2 : 1,
+              },
             ]}
           />
 
