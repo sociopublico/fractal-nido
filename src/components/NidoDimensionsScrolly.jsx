@@ -165,7 +165,7 @@ export default function NidoDimensionsScrolly() {
       >
         <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
           <h2 className="mx-auto mb-10 max-w-4xl md:text-2xl text-3xl font-medium leading-tight text-black max-md:leading-tight md:mb-24 md:text-3xl md:leading-tight lg:text-5xl">
-            El Índice NIDO reúne cuatro dimensiones que moldean las oportunidades desde el nacimiento.
+            El índice NIDO reúne cuatro dimensiones que moldean las oportunidades desde el nacimiento.
           </h2>
 
           <div className="mt-6 grid grid-cols-1 gap-6 md:mt-10 md:grid-cols-4 md:gap-8">
