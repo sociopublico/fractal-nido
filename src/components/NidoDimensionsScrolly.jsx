@@ -39,20 +39,25 @@ export default function NidoDimensionsScrolly() {
   const sectionRef = useRef(null);
   const cardRefs = useRef([]);
   const rafRef = useRef(null);
+  const prevProgressRef = useRef(0);
   const [progress, setProgress] = useState(0);
   const [inView, setInView] = useState(() => dimensions.map(() => false));
+  const [manualActiveIndex, setManualActiveIndex] = useState(-1);
+  const progressForActivation = progress >= 0.995 ? 1 : progress;
 
   const progressStops = dimensions.map((_, index) => ({
     index,
     threshold: index / (dimensions.length - 1),
     position: (index / (dimensions.length - 1)) * 100,
-    reached: progress >= index / (dimensions.length - 1),
+    reached: progressForActivation >= index / (dimensions.length - 1),
   }));
   const activeCardsCount = clamp(
-    progressStops.filter((stop) => progress >= stop.threshold).length,
+    progressStops.filter((stop) => progressForActivation >= stop.threshold).length,
     1,
     dimensions.length
   );
+  const activeIndexFromProgress = activeCardsCount - 1;
+  const desktopActiveIndex = Math.max(activeIndexFromProgress, manualActiveIndex);
 
   useEffect(() => {
     if (!isMobile) return undefined;
@@ -121,6 +126,24 @@ export default function NidoDimensionsScrolly() {
     };
   }, [isMobile]);
 
+  useEffect(() => {
+    if (isMobile) {
+      setManualActiveIndex(-1);
+      prevProgressRef.current = 0;
+      return;
+    }
+    if (manualActiveIndex < 0) return;
+    if (progress < prevProgressRef.current) {
+      setManualActiveIndex(-1);
+      prevProgressRef.current = progress;
+      return;
+    }
+    if (progress >= manualActiveIndex / (dimensions.length - 1)) {
+      setManualActiveIndex(-1);
+    }
+    prevProgressRef.current = progress;
+  }, [isMobile, manualActiveIndex, progress]);
+
   const scrollToDimension = useCallback(
     (index) => {
       if (index < 0 || index >= dimensions.length) return;
@@ -170,7 +193,7 @@ export default function NidoDimensionsScrolly() {
 
           <div className="mt-6 grid grid-cols-1 gap-6 md:mt-10 md:grid-cols-4 md:gap-8">
             {dimensions.map((dimension, index) => {
-              const isActive = isMobile ? inView[index] : index < activeCardsCount;
+              const isActive = isMobile ? inView[index] : index <= desktopActiveIndex;
               const Icon = dimension.Icon;
               const inactiveTransform = isMobile
                 ? 'translateY(16px) scale(0.98)'
@@ -186,10 +209,14 @@ export default function NidoDimensionsScrolly() {
                   role="button"
                   tabIndex={0}
                   aria-label={`Ir a la dimensión ${dimension.label}`}
-                  onClick={() => scrollToDimension(index)}
+                  onClick={() => {
+                    if (!isMobile) setManualActiveIndex(index);
+                    scrollToDimension(index);
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
+                      if (!isMobile) setManualActiveIndex(index);
                       scrollToDimension(index);
                     }
                   }}
