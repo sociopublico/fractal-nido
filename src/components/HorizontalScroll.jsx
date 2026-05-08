@@ -199,9 +199,6 @@ export default function HorizontalScroll() {
                 scale: isMobile ? 2 : 1,
               },
               { src: withBase('scrolly1/20.png'), visible: true, speed: 0, initialX: 0, },
-              { src: withBase('scrolly1/23.png'), visible: true, speed: -0.2, initialX: 0,
-                scale: isMobile ? 2 : 1,
-               },
             ]}
           />
 
