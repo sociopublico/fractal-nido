@@ -24,7 +24,12 @@ export default function LastSection() {
       <div className="max-w-4xl mx-auto px-6 md:px-10 space-y-12">
         <p className="text-center text-2xl leading-tight mt-12 mb-12 text-black">
         <b>El punto de partida no debería definir el acceso a las oportunidades.</b><br/>
-        Conocé más sobre el índice NIDO y explorá el{' '}
+        Conocé más sobre el{' '}
+        <a 
+          href="https://fractalargentina.org/wp-content/uploads/2026/05/FBB_WP_Nido-2.pdf" target="_blank" 
+          rel="noopener noreferrer" 
+          className="font-semibold text-cyan hover:underline transition-colors duration-200">índice NIDO</a> 
+          {' '}y explorá el{' '}
         <a
           href="https://nido.up.railway.app/"
           target="_blank"

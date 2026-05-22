@@ -7,13 +7,13 @@ import path from 'path';
  * Para WordPress: apuntar al tema, ej. '../mi-tema/assets/mi-app/'
  * Para GitHub Pages: el workflow usa VITE_OUTPUT_DIR=dist
  */
-const OUTPUT_DIR = process.env.VITE_OUTPUT_DIR || '../js/mi-app';
+const OUTPUT_DIR = process.env.VITE_OUTPUT_DIR || './nido';
 
 /**
  * Base público (para assets y rutas).
  * En GitHub Pages (proyecto): /<repo-name>/ ; local o WordPress: ./
  */
-const BASE = process.env.VITE_BASE ?? './';
+const BASE = './';
 
 export default defineConfig({
   plugins: [react()],

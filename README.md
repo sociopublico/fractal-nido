@@ -62,14 +62,15 @@ npm run preview
 
 ## Integración en WordPress
 
-1. Copia `mi-app.js` y `mi-app.css` al tema (por ejemplo `assets/mi-app/`).
+1. Copia **toda** la carpeta del build al tema (por ejemplo `assets/mi-app/`): `mi-app.js`, `mi-app.css`, imágenes, `scrolly1/`, `shapes/`, `.lottie`, etc.
 
-2. En la página donde quieras la app, incluye un contenedor y encola los scripts **después** de definir `wpMiApp`:
+2. En la página donde quieras la app, define `APP_BASE_URL` y `wpMiApp` **antes** de encolar `mi-app.js`:
 
 ```php
 <div id="mi-app-root"></div>
 
 <script>
+window.APP_BASE_URL = '<?php echo esc_url( trailingslashit( get_template_directory_uri() . '/assets/mi-app' ) ); ?>';
 window.wpMiApp = {
   apiUrl: '<?php echo esc_url( rest_url() ); ?>',
   nonce: '<?php echo esc_attr( wp_create_nonce( 'wp_rest' ) ); ?>'
@@ -92,7 +93,9 @@ wp_enqueue_style(
 ?>
 ```
 
-3. En tu JavaScript/React usa `window.wpMiApp` (o el helper `getWpConfig()` en `src/wp-config.js`) para llamar a la REST API con `apiUrl` y `nonce`.
+3. Ajustá `APP_BASE_URL` a la URL real donde subiste los assets (ej. `https://tudominio.com/viz/nido/`). Debe terminar en `/`.
+
+4. En tu JavaScript/React usa `window.wpMiApp` (o el helper `getWpConfig()` en `src/wp-config.js`) para llamar a la REST API con `apiUrl` y `nonce`.
 
 ## Estructura
 

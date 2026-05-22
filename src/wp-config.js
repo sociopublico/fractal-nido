@@ -1,11 +1,16 @@
 /**
  * Configuración expuesta por WordPress al embeber la app.
- * El tema/plugin debe definir antes de cargar mi-app.js:
+ * El tema/plugin debe definir ANTES de cargar mi-app.js:
  *
+ *   window.APP_BASE_URL = 'https://tudominio.com/viz/nido/';
  *   window.wpMiApp = {
  *     apiUrl: 'https://tudominio.com/wp-json',
  *     nonce: '...'  // wp_create_nonce('wp_rest') o similar
  *   };
+ *
+ * APP_BASE_URL: URL absoluta (con barra final) donde viven header.png,
+ * scrolly1/, shapes/, etc. Sin esto, ./header.png se resuelve contra la
+ * URL de la página WP y las imágenes fallan.
  *
  * Uso en componentes:
  *   import { getWpConfig } from '../wp-config';
