@@ -24,20 +24,25 @@ const PRIVACION_RADIUS_MAX = POINT_RADIUS * 6;
 const getPulseDuration = (i) => 2.2 + (i * 0.41) % 1.8; // 2.2–4.0s
 const getPulseDelay = (i) => (i * 0.67) % 2.2;          // 0–2.2s
 
-/** Tooltip en mobile: no sale de pantalla; arriba/abajo según espacio; costados contrarios cerca de bordes. */
-function computeMobileTooltipPosition(clientX, clientY) {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
+function shouldPlaceTooltipBelow(clientY) {
   const pad = 10;
   const gap = 12;
   const approxH = 102;
+  const spaceAbove = clientY - pad;
+  const spaceBelow = window.innerHeight - clientY - pad;
+
+  return spaceAbove < approxH + gap && spaceBelow > Math.min(spaceAbove, approxH * 0.85);
+}
+
+/** Tooltip en mobile: no sale de pantalla; arriba/abajo según espacio; costados contrarios cerca de bordes. */
+function computeMobileTooltipPosition(clientX, clientY) {
+  const vw = window.innerWidth;
+  const pad = 10;
+  const gap = 12;
   const maxW = Math.min(300, vw - 2 * pad);
   const halfW = maxW / 2;
 
-  const spaceAbove = clientY - pad;
-  const spaceBelow = vh - clientY - pad;
-  const placeBelow =
-    spaceAbove < approxH + gap && spaceBelow > Math.min(spaceAbove, approxH * 0.85);
+  const placeBelow = shouldPlaceTooltipBelow(clientY);
 
   const nearLeft = clientX < vw * 0.28;
   const nearRight = clientX > vw * 0.72;
@@ -323,6 +328,7 @@ export default function ArgentinaMapScroll() {
           provincia: d.provincia,
           poblacion: d.poblacion,
           tasaDePrivaciones: 1 - d.tasaDePrivaciones,
+          placeBelow: shouldPlaceTooltipBelow(event.clientY),
         };
         if (isMobileRef.current) {
           Object.assign(payload, computeMobileTooltipPosition(event.clientX, event.clientY));
@@ -341,7 +347,12 @@ export default function ArgentinaMapScroll() {
               ...computeMobileTooltipPosition(event.clientX, event.clientY),
             };
           }
-          return { ...t, x: event.clientX, y: event.clientY };
+          return {
+            ...t,
+            x: event.clientX,
+            y: event.clientY,
+            placeBelow: shouldPlaceTooltipBelow(event.clientY),
+          };
         });
       });
 
@@ -353,13 +364,6 @@ export default function ArgentinaMapScroll() {
         .ease(d3.easeCubicOut)
         .attr('r', POINT_RADIUS);
     }
-
-    circles
-      .append('title')
-      .text(
-        (d) =>
-          `${d.localidad}, ${d.provincia}${d.poblacion ? ` · ${d.poblacion.toLocaleString('es-AR')} hab.` : ''}${d.tasaDePrivaciones != null ? ` · Tasa sin privaciones: ${d.tasaDePrivaciones.toFixed(1)}%` : ''}`
-      );
   }, [geoData, projectionReady, redrawKey, svgSize, localidades, mapStepEntered]);
 
   // Actualizar solo el transform del grupo al hacer scroll (sin redibujar todo)
@@ -428,7 +432,7 @@ export default function ArgentinaMapScroll() {
           <div className="font-bold">{tooltip.localidad}</div>
           {tooltip.tasaDePrivaciones != null && (
             <div className="mt-1 border-t border-[#86898B4D] pt-1 text-black">
-              <b>{Number(1 - tooltip.tasaDePrivaciones).toFixed(1)}%</b> Privaciones materiales
+              <b>{Number(1 - tooltip.tasaDePrivaciones).toFixed(1)}%</b> Tasa sin privaciones materiales
             </div>
           )}
         </div>
@@ -438,29 +442,31 @@ export default function ArgentinaMapScroll() {
         className="pointer-events-none fixed z-10 text-sm text-black"
         style={{
           left: tooltip.x,
-          bottom: `calc(100vh - ${tooltip.y}px + 12px)`,
-          transform: 'translateX(-50%)',
+          top: tooltip.placeBelow ? tooltip.y + 12 : tooltip.y - 12,
+          transform: tooltip.placeBelow ? 'translateX(-50%)' : 'translate(-50%, -100%)',
         }}
       >
         <div className="relative border border-black bg-white px-3 py-2 shadow-lg">
           <div
             style={{
               position: 'absolute',
-              bottom: -6,
+              ...(tooltip.placeBelow ? { top: -6 } : { bottom: -6 }),
               left: '50%',
               transform: 'translateX(-50%)',
               width: 0,
               height: 0,
               borderLeft: '6px solid transparent',
               borderRight: '6px solid transparent',
-              borderTop: '6px solid black',
+              ...(tooltip.placeBelow
+                ? { borderBottom: '6px solid black' }
+                : { borderTop: '6px solid black' }),
             }}
           />
           <div className="uppercase text-black/70">{tooltip.provincia}</div>
           <div className="font-bold">{tooltip.localidad}</div>
           {tooltip.tasaDePrivaciones != null && (
             <div className="mt-1 border-t border-[#86898B4D] pt-1 text-black">
-              <b>{Number(1 - tooltip.tasaDePrivaciones).toFixed(1)}%</b> Privaciones materiales
+              <b>{Number(1 - tooltip.tasaDePrivaciones).toFixed(1)}%</b> Tasa sin privaciones materiales
             </div>
           )}
         </div>

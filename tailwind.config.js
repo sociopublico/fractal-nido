@@ -9,6 +9,10 @@ export default {
       fontFamily: {
         sans: ['Satoshi', 'sans-serif'],
       },
+      /* Satoshi no tiene 600; mapear semibold al bold real para evitar síntesis fea */
+      fontWeight: {
+        semibold: '700',
+      },
       colors: {
         cyan: '#00A1DE',
         teal: '#18D4B4',
