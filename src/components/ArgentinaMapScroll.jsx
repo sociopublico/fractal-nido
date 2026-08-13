@@ -27,11 +27,39 @@ const getPulseDelay = (i) => (i * 0.67) % 2.2;          // 0–2.2s
 function shouldPlaceTooltipBelow(clientY) {
   const pad = 10;
   const gap = 12;
-  const approxH = 102;
+  const approxH = 120;
   const spaceAbove = clientY - pad;
   const spaceBelow = window.innerHeight - clientY - pad;
 
   return spaceAbove < approxH + gap && spaceBelow > Math.min(spaceAbove, approxH * 0.85);
+}
+
+function MapLocalidadTooltipBody({ tooltip }) {
+  const tasa =
+    tooltip.tasaDePrivaciones != null && !Number.isNaN(Number(tooltip.tasaDePrivaciones))
+      ? Number(1 - tooltip.tasaDePrivaciones).toFixed(1)
+      : null;
+  const habitantes =
+    tooltip.poblacion != null && !Number.isNaN(Number(tooltip.poblacion))
+      ? `${Math.round(Number(tooltip.poblacion)).toLocaleString('es-AR')} habitantes`
+      : null;
+
+  return (
+    <>
+      <div className="uppercase text-black/70">{tooltip.provincia}</div>
+      <div className="font-bold">{tooltip.localidad}</div>
+      {(tasa != null || habitantes != null) && (
+        <div className="mt-1 border-t border-[#86898B4D] pt-1 text-black">
+          {tasa != null && (
+            <div className="uppercase">
+              Tasa sin privaciones materiales: <b>{tasa}%</b>
+            </div>
+          )}
+          {habitantes != null && <div>{habitantes}</div>}
+        </div>
+      )}
+    </>
+  );
 }
 
 /** Tooltip en mobile: no sale de pantalla; arriba/abajo según espacio; costados contrarios cerca de bordes. */
@@ -315,38 +343,52 @@ export default function ArgentinaMapScroll() {
       .attr('r', shouldGrow ? 0 : POINT_RADIUS)
       .attr('fill', POINT_COLOR)
       .attr('filter', 'url(#glow-cyan)')
-      .style('cursor', 'pointer')
+      .attr('pointer-events', 'none')
       // Animación de pulso con duración y delay distintos por punto
       .style('animation', (_, i) =>
         `map-pulse ${getPulseDuration(i).toFixed(2)}s ${getPulseDelay(i).toFixed(2)}s ease-in-out infinite`
-      )
+      );
+
+    const buildTooltipPayload = (event, d) => {
+      const payload = {
+        key: `${d.provincia}|${d.localidad}`,
+        x: event.clientX,
+        y: event.clientY,
+        localidad: d.localidad,
+        provincia: d.provincia,
+        poblacion: d.poblacion,
+        tasaDePrivaciones: 1 - d.tasaDePrivaciones,
+        placeBelow: shouldPlaceTooltipBelow(event.clientY),
+      };
+      if (isMobileRef.current) {
+        Object.assign(payload, computeMobileTooltipPosition(event.clientX, event.clientY));
+      }
+      return payload;
+    };
+
+    // Hit area más grande en mobile para el tap; desktop sigue con hover.
+    const hitRadius = isMobileRef.current ? 16 : POINT_RADIUS + 4;
+    g.selectAll('.city-hit')
+      .data(points)
+      .join('circle')
+      .attr('class', 'city-hit')
+      .attr('cx', (d) => d.x)
+      .attr('cy', (d) => d.y)
+      .attr('r', hitRadius)
+      .attr('fill', 'transparent')
+      .style('cursor', 'pointer')
       .on('mouseover', function (event, d) {
-        const payload = {
-          x: event.clientX,
-          y: event.clientY,
-          localidad: d.localidad,
-          provincia: d.provincia,
-          poblacion: d.poblacion,
-          tasaDePrivaciones: 1 - d.tasaDePrivaciones,
-          placeBelow: shouldPlaceTooltipBelow(event.clientY),
-        };
-        if (isMobileRef.current) {
-          Object.assign(payload, computeMobileTooltipPosition(event.clientX, event.clientY));
-        }
-        setTooltipRef.current(payload);
+        if (isMobileRef.current) return;
+        setTooltipRef.current(buildTooltipPayload(event, d));
       })
-      .on('mouseout', () => setTooltipRef.current(null))
+      .on('mouseout', () => {
+        if (isMobileRef.current) return;
+        setTooltipRef.current(null);
+      })
       .on('mousemove', (event) => {
+        if (isMobileRef.current) return;
         setTooltipRef.current((t) => {
           if (!t) return null;
-          if (isMobileRef.current) {
-            return {
-              ...t,
-              x: event.clientX,
-              y: event.clientY,
-              ...computeMobileTooltipPosition(event.clientX, event.clientY),
-            };
-          }
           return {
             ...t,
             x: event.clientX,
@@ -354,7 +396,18 @@ export default function ArgentinaMapScroll() {
             placeBelow: shouldPlaceTooltipBelow(event.clientY),
           };
         });
+      })
+      .on('click', function (event, d) {
+        if (!isMobileRef.current) return;
+        event.stopPropagation();
+        const payload = buildTooltipPayload(event, d);
+        setTooltipRef.current((t) => (t?.key === payload.key ? null : payload));
       });
+
+    // Tap fuera del punto cierra el tooltip sticky en mobile.
+    d3.select(svgRef.current).on('click.dismissTooltip', () => {
+      if (isMobileRef.current) setTooltipRef.current(null);
+    });
 
     if (shouldGrow) {
       hasAnimatedPointsRef.current = true;
@@ -428,13 +481,7 @@ export default function ArgentinaMapScroll() {
               }}
             />
           )}
-          <div className="uppercase text-black/70">{tooltip.provincia}</div>
-          <div className="font-bold">{tooltip.localidad}</div>
-          {tooltip.tasaDePrivaciones != null && (
-            <div className="mt-1 border-t border-[#86898B4D] pt-1 text-black">
-              <b>{Number(1 - tooltip.tasaDePrivaciones).toFixed(1)}%</b> Tasa sin privaciones materiales
-            </div>
-          )}
+          <MapLocalidadTooltipBody tooltip={tooltip} />
         </div>
       </div>
     ) : !isMobile ? (
@@ -462,13 +509,7 @@ export default function ArgentinaMapScroll() {
                 : { borderTop: '6px solid black' }),
             }}
           />
-          <div className="uppercase text-black/70">{tooltip.provincia}</div>
-          <div className="font-bold">{tooltip.localidad}</div>
-          {tooltip.tasaDePrivaciones != null && (
-            <div className="mt-1 border-t border-[#86898B4D] pt-1 text-black">
-              <b>{Number(1 - tooltip.tasaDePrivaciones).toFixed(1)}%</b> Tasa sin privaciones materiales
-            </div>
-          )}
+          <MapLocalidadTooltipBody tooltip={tooltip} />
         </div>
       </div>
     ) : null);

@@ -9,8 +9,8 @@
  *   };
  *
  * APP_BASE_URL: URL absoluta (con barra final) donde viven header.png,
- * scrolly1/, shapes/, etc. Sin esto, ./header.png se resuelve contra la
- * URL de la página WP y las imágenes fallan.
+ * scrolly1/, shapes/, etc. Opcional: si falta, withBase usa la carpeta de
+ * mi-app.js (import.meta.url) para armar URLs absolutas.
  *
  * Uso en componentes:
  *   import { getWpConfig } from '../wp-config';

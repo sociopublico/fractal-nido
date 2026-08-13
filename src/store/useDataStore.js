@@ -6,24 +6,37 @@ const LOCALIDADES_CSV_URL =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vS4qmx1XopDwvHxBj574EUmjT9XlM4OdvxP_DameDIq8qadGzBx1AlWb7BQirXwyvf37FacyS5OJZIw/pub?gid=1970511762&single=true&output=csv';
 
 const TASA_DE_PRIVACIONES_KEYS = ['tasa de privaciones', 'tasa_sin_privaciones', 'tasaDePrivaciones', 'privaciones'];
+const POBLACION_KEYS = ['poblacion', 'población', 'habitantes', 'pob', 'poblacion_total'];
+
+function findColumnKey(row, candidates) {
+  return Object.keys(row).find((k) =>
+    candidates.some((c) => k.toLowerCase().trim() === c.toLowerCase())
+  );
+}
 
 function parseLocalidades(rows) {
   if (!rows?.length) return [];
   return rows
     .filter((d) => d.LON != null && d.LAT != null && d.localidad != null)
     .map((d) => {
-      const tasaKey = Object.keys(d).find((k) =>
-        TASA_DE_PRIVACIONES_KEYS.some((tk) => k.toLowerCase().trim() === tk.toLowerCase())
-      );
+      const tasaKey = findColumnKey(d, TASA_DE_PRIVACIONES_KEYS);
       const tasaRaw = tasaKey ? d[tasaKey] : null;
       const tasaDePrivaciones =
         tasaRaw != null && tasaRaw !== '' ? +String(tasaRaw).replace(',', '.') : null;
+
+      const poblacionKey = findColumnKey(d, POBLACION_KEYS);
+      const poblacionRaw = poblacionKey ? d[poblacionKey] : null;
+      const poblacion =
+        poblacionRaw != null && poblacionRaw !== ''
+          ? +String(poblacionRaw).replace(/\./g, '').replace(',', '.')
+          : null;
+
       return {
         provincia: d.provincia ?? '',
         localidad: d.localidad ?? '',
         LON: +d.LON,
         LAT: +d.LAT,
-        poblacion: d.poblacion != null ? +d.poblacion : null,
+        poblacion: poblacion != null && !Number.isNaN(poblacion) ? poblacion : null,
         tasaDePrivaciones: !Number.isNaN(tasaDePrivaciones) ? tasaDePrivaciones : null,
       };
     })
