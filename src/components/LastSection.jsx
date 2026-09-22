@@ -28,7 +28,11 @@ export default function LastSection() {
         <a 
           href="https://fractalargentina.org/wp-content/uploads/2026/05/FBB_WP_Nido-2.pdf" target="_blank" 
           rel="noopener noreferrer" 
-          className="font-semibold text-cyan hover:underline transition-colors duration-200">índice NIDO</a> 
+          className="font-semibold text-cyan hover:underline transition-colors duration-200">índice NIDO</a>,
+          su{' '}<a 
+          href="https://drive.google.com/file/d/1XMYYyomSblmazKDOxgLoPe1Wu8bUw8qu/view?usp=sharing" target="_blank" 
+          rel="noopener noreferrer" 
+          className="font-semibold text-cyan hover:underline transition-colors duration-200">resumen ejecutivo</a>
           {' '}y explorá el{' '}
         <a
           href="https://nido.up.railway.app/"
